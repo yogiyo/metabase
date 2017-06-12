@@ -1,3 +1,4 @@
+/* @flow */
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
 
@@ -5,8 +6,34 @@ import Input from "metabase/components/Input.jsx";
 import HeaderModal from "metabase/components/HeaderModal.jsx";
 import TitleAndDescription from "metabase/components/TitleAndDescription.jsx";
 import EditBar from "metabase/components/EditBar.jsx";
-
 import { getScrollY } from "metabase/lib/dom";
+
+import type SyntheticInputEvent from 'react/types'
+
+type Props = {
+    headerButtons: [],
+    editingButtons: [],
+    editingTitle: string,
+    editingSubtitle: string,
+    item: {
+        creator: { common_name: string },
+        name: string,
+        description: string
+    },
+    objectType: string,
+    isEditing: boolean,
+    isEditingInfo: boolean,
+    setItemAttributeFn: () => void,
+    children: {},
+    headerClassName: string,
+    headerModalMessage: string,
+    onHeaderModalCancel: () => void,
+    onHeaderModalDone: () => void
+}
+
+type State = {
+    headerHeight: number
+}
 
 export default class Header extends Component {
     static defaultProps = {
@@ -17,17 +44,14 @@ export default class Header extends Component {
         headerClassName: "py1 lg-py2 xl-py3 wrapper"
     };
 
-    constructor(props, context) {
-        super(props, context);
-
-        this.state = {
-            headerHeight: 0
-        };
+    props: Props
+    state: State = {
+        headerHeight: 0
     }
 
-   componentDidMount() {
+    componentDidMount() {
         this.updateHeaderHeight();
-   }
+    }
 
     componentWillUpdate() {
         const modalIsOpen = !!this.props.headerModalMessage;
@@ -46,20 +70,8 @@ export default class Header extends Component {
         }
     }
 
-    setItemAttribute(attribute, event) {
-        this.props.setItemAttributeFn(attribute, event.target.value);
-    }
-
-    renderEditHeader() {
-        if (this.props.isEditing) {
-            return (
-                <EditBar
-                    title={this.props.editingTitle}
-                    subtitle={this.props.editingSubtitle}
-                    buttons={this.props.editingButtons}
-                />
-            )
-        }
+    setItemAttribute (attribute: string, { target: SyntheticInputEvent }): void {
+        this.props.setItemAttributeFn(attribute, target.value);
     }
 
     renderHeaderModal() {
@@ -74,67 +86,84 @@ export default class Header extends Component {
         );
     }
 
-    render() {
-        var titleAndDescription;
+    renderTitleAndDescription = () => {
         if (this.props.isEditingInfo) {
-            titleAndDescription = (
+            return (
                 <div className="Header-title flex flex-column flex-full bordered rounded my1">
-                    <Input className="AdminInput text-bold border-bottom rounded-top h3" type="text" value={this.props.item.name || ""} onChange={this.setItemAttribute.bind(this, "name")}/>
-                    <Input className="AdminInput rounded-bottom h4" type="text" value={this.props.item.description || ""} onChange={this.setItemAttribute.bind(this, "description")} placeholder="No description yet" />
+                    <Input
+                        className="AdminInput text-bold border-bottom rounded-top h3"
+                        type="text"
+                        value={this.props.item.name}
+                        onChange={this.setItemAttribute.bind(this, "name")}
+                    />
+                    <Input
+                        className="AdminInput rounded-bottom h4"
+                        type="text"
+                        value={this.props.item.description}
+                        onChange={this.setItemAttribute.bind(this, "description")}
+                        placeholder="No description yet"
+                    />
                 </div>
             );
         } else {
-            if (this.props.item && this.props.item.id != null) {
-                titleAndDescription = (
-                    <TitleAndDescription
-                        title={this.props.item.name}
-                        description={this.props.item.description}
-                    />
-                );
-            } else {
-                titleAndDescription = (
-                    <TitleAndDescription
-                        title={`New ${this.props.objectType}`}
-                        description={this.props.item.description}
-                    />
-                );
-            }
-        }
-
-        var attribution;
-        if (this.props.item && this.props.item.creator) {
-            attribution = (
-                <div className="Header-attribution">
-                    Asked by {this.props.item.creator.common_name}
-                </div>
+            return (
+                <TitleAndDescription
+                    title={
+                        this.props.item.id != null
+                            ? this.props.item.name
+                            : `New ${this.props.objectType}`
+                    }
+                    description={this.props.item.description}
+                />
             );
         }
 
-        var headerButtons = this.props.headerButtons.map((section, sectionIndex) => {
-            return section && section.length > 0 && (
-                <span key={sectionIndex} className="Header-buttonSection flex align-center">
-                    {section.map((button, buttonIndex) =>
-                        <span key={buttonIndex} className="Header-button">
-                            {button}
-                        </span>
-                    )}
-                </span>
-            );
-        });
+    }
+
+    render() {
+        const { headerButtons, item, isEditing, isEditingInfo } = this.props
 
         return (
             <div>
-                {this.renderEditHeader()}
+                { isEditing && (
+                    <EditBar
+                        title={this.props.editingTitle}
+                        subtitle={this.props.editingSubtitle}
+                        buttons={this.props.editingButtons}
+                    />
+                )}
                 {this.renderHeaderModal()}
-                <div className={"QueryBuilder-section flex align-center " + this.props.headerClassName} ref="header">
+                <div
+                    lassName={`QueryBuilder-section flex align-center ${this.props.headerClassName}`}
+                    ref="header"
+                >
                     <div className="Entity py3">
-                        {titleAndDescription}
-                        {attribution}
+                        {this.renderTitleAndDescription()}
+
+                        { item && item.creator && (
+                            <div className="Header-attribution">
+                                Asked by {item.creator.common_name}
+                            </div>
+                        )}
+
                     </div>
 
-                    <div className="flex align-center flex-align-right">
-                        {headerButtons}
-                    </div>
+                    <ol className="flex align-center flex-align-right">
+                        { headerButtons.map((section, sectionIndex) =>
+                            section && section.length > 0 && (
+                                <li key={sectionIndex} className="Header-buttonSection flex align-center">
+                                    <ol>
+                                        {section.map((button, buttonIndex) =>
+                                            <li key={buttonIndex} cjassName="Header-button">
+                                                {button}
+                                            </li>
+                                        )}
+                                    </ol>
+                                    }
+                                </li>
+                            )
+                        )}
+                    </ol>
                 </div>
                 {this.props.children}
             </div>

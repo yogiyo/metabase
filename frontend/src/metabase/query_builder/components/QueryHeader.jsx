@@ -29,6 +29,8 @@ import * as Urls from "metabase/lib/urls";
 import cx from "classnames";
 import _ from "underscore";
 
+import Header from "metabase/components/Header.jsx";
+
 
 export default class QueryHeader extends Component {
     constructor(props, context) {
@@ -390,6 +392,36 @@ export default class QueryHeader extends Component {
         );
     }
 
+    getEditingButtons() {
+        return [
+            <a data-metabase-event="Dashboard;Cancel Edits" key="cancel" className="Button Button--small" onClick={() => this.onCancel()}>
+                Cancel
+            </a>,
+            <ModalWithTrigger
+                key="archive"
+                ref="archiveDashboardModal"
+                triggerClasses="Button Button--small"
+                triggerElement="Archive"
+            >
+                { /*
+                <ArchiveDashboardModal
+                    dashboard={this.props.dashboard}
+                    onClose={() => this.refs.archiveDashboardModal.toggle()}
+                    onArchive={() => this.onArchive()}
+                /> */ }
+            </ModalWithTrigger>,
+            <ActionButton
+                key="save"
+                actionFn={() => this.onSave()}
+                className="Button Button--small Button--primary"
+                normalText="Save"
+                activeText="Saving…"
+                failedText="Save failed"
+                successText="Saved"
+            />
+        ];
+    }
+
     onCloseModal = () => {
         this.setState({ modal: null });
     }
@@ -397,6 +429,15 @@ export default class QueryHeader extends Component {
     render() {
         return (
             <div className="relative">
+                <Header
+                    objectType="question"
+                    isEditing={this.props.isEditing}
+                    isEditingInfo={this.props.isEditing}
+                    editingTitle="You are editing this question."
+                    setItemAttributeFn={this.props.onSetCardAttribute}
+                    item={this.props.card}
+                    editingButtons={this.getEditingButtons()}
+                />
                 <HeaderBar
                     isEditing={this.props.isEditing}
                     name={this.props.isNew ? "New question" : this.props.card.name}
