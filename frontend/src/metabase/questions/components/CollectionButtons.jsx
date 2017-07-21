@@ -41,7 +41,7 @@ class CollectionButton extends Component {
                     className={cx(COLLECTION_BOX_CLASSES, 'text-white-hover')}
                     style={{
                         borderRadius: 10,
-                        backgroundColor: this.state.hovered ? color : '#fafafa'
+                        backgroundColor: this.state.hovered ? color : '#F9FBFC'
                     }}
                 >
                     { isAdmin &&
