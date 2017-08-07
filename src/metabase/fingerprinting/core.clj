@@ -108,9 +108,10 @@
 (defn x-ray
   "Turn the fingerprint structure into an x-ray."
   [fingerprint]
-  (let [x-ray (comp add-descriptions (partial trim-decimals 2) f/x-ray)]
+  (let [prettify (comp add-descriptions (partial trim-decimals 2) f/x-ray)]
     (-> fingerprint
-        (update :fingerprint x-ray)
+        prettify
+        (update :fingerprint prettify)
 ;        (update :comparison  (partial map x-ray))
         (update :constituents (partial map x-ray)))))
 
