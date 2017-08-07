@@ -131,4 +131,14 @@
     (api/read-check Segment sid)
     (api/read-check Table tid))))
 
+(api/defendpoint GET "/kyle/test1/:id1/:id2"
+  [id1 id2]
+  (map (partial api/read-check Segment) [id1 id2])
+  "ok")
+
+(api/defendpoint GET "/kyle/test2/:id1"
+  [id1]
+  (api/read-check Segment id1)
+  "ok")
+
 (api/define-routes)
