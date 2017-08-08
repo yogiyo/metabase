@@ -141,4 +141,14 @@
   (api/read-check Segment id1)
   "ok")
 
+(api/defendpoint GET "/kyle/test3/:id1"
+  [id1]
+  (Segment id1)
+  "ok")
+
+(api/defendpoint GET "/kyle/test4/:id1/:id2"
+  [id1]
+  [(Segment id1) (Segment id2)]
+  "ok")
+
 (api/define-routes)
