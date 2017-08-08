@@ -20,7 +20,7 @@
   "ok")
 
 (api/defendpoint GET "/test4/:id1/:id2"
-  [id1]
+  [id1 id2]
   [(Segment id1) (Segment id2)]
   "ok")
 

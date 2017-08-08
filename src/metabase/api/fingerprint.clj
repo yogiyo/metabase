@@ -76,16 +76,16 @@
                                            max_computation_cost)})
        f/x-ray))
 
-(api/defendpoint GET "/compare/fields/:id1/:id2"
-  "Get comparison fingerprints for `Field`s with ID1 and ID2."
-  [id1 id2 max_query_cost max_computation_cost]
-  {max_query_cost       MaxQueryCost
-   max_computation_cost MaxComputationCost}
-  (->> [id1 id2]
-       (map (partial api/read-check Field))
-       (apply f/compare-fingerprints
-              {:max-cost (max-cost max_query_cost max_computation_cost)})
-       f/x-ray))
+;; (api/defendpoint GET "/compare/fields/:id1/:id2"
+;;   "Get comparison fingerprints for `Field`s with ID1 and ID2."
+;;   [id1 id2 max_query_cost max_computation_cost]
+;;   {max_query_cost       MaxQueryCost
+;;    max_computation_cost MaxComputationCost}
+;;   (->> [id1 id2]
+;;        (map (partial api/read-check Field))
+;;        (apply f/compare-fingerprints
+;;               {:max-cost (max-cost max_query_cost max_computation_cost)})
+;;        f/x-ray))
 
 (api/defendpoint GET "/compare/tables/:id1/:id2"
   "Get comparison fingerprints for `Table`s with ID1 and ID2."
@@ -147,7 +147,7 @@
   "ok")
 
 (api/defendpoint GET "/kyle/test4/:id1/:id2"
-  [id1]
+  [id1 id2]
   [(Segment id1) (Segment id2)]
   "ok")
 
