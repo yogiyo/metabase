@@ -13,6 +13,7 @@
              [embed :as embed]
              [field :as field]
              [fingerprint :as fingerprint]
+             [weird-kyle-bug :as weird-kyle-bug]
              [geojson :as geojson]
              [getting-started :as getting-started]
              [label :as label]
@@ -64,7 +65,7 @@
   (context "/field"           [] (+auth field/routes))
   ;; TODO - fingerprint and comparison should be split out?
   (context "/fingerprint"     [] (+auth fingerprint/routes))
-  (context "/weird-kyle-bug"  [] (+auth fingerprint/routes))
+  (context "/weird-kyle-bug"  [] (+auth weird-kyle-bug/routes))
   (context "/getting_started" [] (+auth getting-started/routes))
   (context "/geojson"         [] (+auth geojson/routes))
   (context "/label"           [] (+auth label/routes))
