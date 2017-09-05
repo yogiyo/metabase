@@ -230,7 +230,7 @@ export default class PulseEditChannels extends Component {
                     <Toggle className="flex-align-right" value={channels.length > 0} onChange={this.toggleChannel.bind(this, channelSpec.type)} />
                 </div>
                 {channels.length > 0 && channelSpec.configured ?
-                    <ul className="bg-grey-0 px3">{channels}</ul>
+                    <ul className="bg-slate-extra-light px3">{channels}</ul>
                 : channels.length > 0 && !channelSpec.configured ?
                     <div className="p4 text-centered">
                         <h3 className="mb2">{channelSpec.name} needs to be set up by an administrator.</h3>

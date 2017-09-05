@@ -4,8 +4,10 @@ import PulseListItem from "./PulseListItem.jsx";
 import WhatsAPulse from "./WhatsAPulse.jsx";
 import SetupModal from "./SetupModal.jsx";
 
-import LoadingAndErrorWrapper from "metabase/components/LoadingAndErrorWrapper.jsx";
-import Modal from "metabase/components/Modal.jsx";
+import Icon from "metabase/components/Icon";
+import LoadingAndErrorWrapper from "metabase/components/LoadingAndErrorWrapper";
+import Modal from "metabase/components/Modal";
+import Tooltip from "metabase/components/Tooltip";
 
 import _ from "underscore";
 
@@ -33,10 +35,14 @@ export default class PulseList extends Component {
         const { pulses, user } = this.props;
         return (
             <div className="bg-slate-extra-light full-height">
-                <div className="mb2">
-                    <div className="wrapper flex align-center py2">
+                <div>
+                    <div className="wrapper flex align-center py3">
                         <h2>Pulses</h2>
-                        <a onClick={this.create} className="Button ml-auto">Create a pulse</a>
+                        <a onClick={this.create} className="ml-auto text-brand-hover">
+                            <Tooltip tooltip="Create a pulse">
+                                <Icon name="add" size={20} />
+                            </Tooltip>
+                        </a>
                     </div>
                 </div>
                 <div className="wrapper full">

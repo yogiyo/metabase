@@ -11,11 +11,6 @@ const SOFT_LIMIT = 10;
 const HARD_LIMIT = 25;
 
 export default class PulseEditCards extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {};
-    }
-
     static propTypes = {
         pulse: PropTypes.object.isRequired,
         pulseId: PropTypes.number,
@@ -25,12 +20,9 @@ export default class PulseEditCards extends Component {
         fetchPulseCardPreview: PropTypes.func.isRequired,
         setPulse: PropTypes.func.isRequired
     };
-    static defaultProps = {};
 
     setCard(index, cardId) {
-        let { pulse } = this.props;
-        this.props.setPulse({
-            ...pulse,
+        let { pulse } = this.props; this.props.setPulse({ ...pulse,
             cards: [...pulse.cards.slice(0, index), { id: cardId }, ...pulse.cards.slice(index + 1)]
         });
 
@@ -90,7 +82,7 @@ export default class PulseEditCards extends Component {
     }
 
     render() {
-        let { pulse, cards, cardList, cardPreviews } = this.props;
+        const { pulse, cards, cardList, cardPreviews } = this.props;
 
         let pulseCards = pulse ? pulse.cards.slice() : [];
         if (pulseCards.length < HARD_LIMIT) {
@@ -100,14 +92,14 @@ export default class PulseEditCards extends Component {
         return (
             <div className="py1">
                 <h2>Pick your data</h2>
-                <p className="mt1 h4 text-bold text-grey-3">Pick up to five questions you'd like to send in this pulse</p>
+                <p className="mt1 h4 text-grey-3">Pick up to five questions you'd like to send in this pulse</p>
                 <ol className="my3">
                     {cards && pulseCards.map((card, index) =>
                         <li key={index} className="my1">
                             { index === SOFT_LIMIT && <div className="my4 ml3" style={{ width: 375, borderTop: "1px dashed rgb(214,214,214)"}}/> }
                             <div className="flex align-top">
                                 <div className="flex align-top" style={{ width: 400 }}>
-                                    <span className="h3 text-bold mr1 mt2">{index + 1}.</span>
+                                    <span className="h3 mr1 mt2">{index + 1}.</span>
                                     { card ?
                                         <PulseCardPreview
                                             card={card}
