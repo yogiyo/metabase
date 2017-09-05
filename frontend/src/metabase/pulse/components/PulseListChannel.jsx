@@ -82,7 +82,7 @@ export default class PulseListChannel extends Component {
         }
 
         return (
-            <div className="py2 flex align-center">
+            <div className="flex align-center">
                 { this.renderChannelSchedule() }
                 { subscribable &&
                     <div className="flex-align-right">

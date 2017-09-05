@@ -94,67 +94,73 @@ export default class PulseEdit extends Component {
         let { pulse, formInput } = this.props;
         let isValid = pulseIsValid(pulse, formInput.channels);
         return (
-            <div className="PulseEdit">
-                <div className="PulseEdit-header flex align-center border-bottom py3">
-                    <h1>{pulse && pulse.id != null ? "Edit" : "New"} pulse</h1>
-                    <ModalWithTrigger
-                        ref="pulseInfo"
-                        className="Modal WhatsAPulseModal"
-                        triggerElement="What's a Pulse?"
-                        triggerClasses="text-brand text-bold flex-align-right"
-                    >
-                        <ModalContent
-                            onClose={() => this.refs.pulseInfo.close()}
+            <div>
+                <div className="border-bottom py3">
+                    <div className="wrapper wrapper--trim flex align-center">
+                        <h2>{pulse && pulse.id != null ? "Edit" : "New"} pulse</h2>
+                        <ModalWithTrigger
+                            ref="pulseInfo"
+                            className="Modal WhatsAPulseModal"
+                            triggerElement="What's a Pulse?"
+                            triggerClasses="text-brand text-bold flex-align-right"
                         >
-                            <div className="mx4 mb4">
-                                <WhatsAPulse
-                                    button={<button className="Button Button--primary" onClick={() => this.refs.pulseInfo.close()}>Got it</button>}
-                                />
-                            </div>
-                        </ModalContent>
-                    </ModalWithTrigger>
+                            <ModalContent
+                                onClose={() => this.refs.pulseInfo.close()}
+                            >
+                                <div className="mx4 mb4">
+                                    <WhatsAPulse
+                                        button={<button className="Button Button--primary" onClick={() => this.refs.pulseInfo.close()}>Got it</button>}
+                                    />
+                                </div>
+                            </ModalContent>
+                        </ModalWithTrigger>
+                    </div>
                 </div>
-                <div className="PulseEdit-content pt2 pb4">
-                    <PulseEditName {...this.props} setPulse={this.setPulse} />
-                    <PulseEditCards {...this.props} setPulse={this.setPulse} />
-                    <PulseEditChannels {...this.props} setPulse={this.setPulse} pulseIsValid={isValid} />
-                    <PulseEditSkip {...this.props} setPulse={this.setPulse} />
-                    { pulse && pulse.id != null &&
-                        <div className="DangerZone mb2 p3 rounded bordered relative">
-                            <h3 className="text-error absolute top bg-white px1" style={{ marginTop: "-12px" }}>Danger Zone</h3>
-                            <div className="ml1">
-                                <h4 className="text-bold mb1">Delete this pulse</h4>
-                                <div className="flex">
-                                    <p className="h4 pr2">Stop delivery and delete this pulse. There's no undo, so be careful.</p>
-                                    <ModalWithTrigger
-                                        ref={"deleteModal"+pulse.id}
-                                        triggerClasses="Button Button--danger flex-align-right flex-no-shrink"
-                                        triggerElement="Delete this Pulse"
-                                    >
-                                        <DeleteModalWithConfirm
-                                            objectType="pulse"
-                                            objectName={pulse.name}
-                                            confirmItems={this.getConfirmItems()}
-                                            onClose={() => this.refs["deleteModal"+pulse.id].close()}
-                                            onDelete={this.delete}
-                                        />
-                                    </ModalWithTrigger>
+                <div className="wrapper wrapper--trim">
+                    <div className="pt2 text-measure pb4">
+                        <PulseEditName {...this.props} setPulse={this.setPulse} />
+                        <PulseEditCards {...this.props} setPulse={this.setPulse} />
+                        <PulseEditChannels {...this.props} setPulse={this.setPulse} pulseIsValid={isValid} />
+                        <PulseEditSkip {...this.props} setPulse={this.setPulse} />
+                        { pulse && pulse.id != null &&
+                            <div className="DangerZone mb2 p3 rounded bordered relative">
+                                <h3 className="text-error absolute top bg-white px1" style={{ marginTop: "-12px" }}>Danger Zone</h3>
+                                <div className="ml1">
+                                    <h4 className="text-bold mb1">Delete this pulse</h4>
+                                    <div className="flex">
+                                        <p className="h4 pr2">Stop delivery and delete this pulse. There's no undo, so be careful.</p>
+                                        <ModalWithTrigger
+                                            ref={"deleteModal"+pulse.id}
+                                            triggerClasses="Button Button--danger flex-align-right flex-no-shrink"
+                                            triggerElement="Delete this Pulse"
+                                        >
+                                            <DeleteModalWithConfirm
+                                                objectType="pulse"
+                                                objectName={pulse.name}
+                                                confirmItems={this.getConfirmItems()}
+                                                onClose={() => this.refs["deleteModal"+pulse.id].close()}
+                                                onDelete={this.delete}
+                                            />
+                                        </ModalWithTrigger>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    }
+                        }
+                    </div>
                 </div>
-                <div className="PulseEdit-footer flex align-center border-top py3">
-                    <ActionButton
-                        actionFn={this.save}
-                        className={cx("Button Button--primary", { "disabled": !isValid })}
-                        normalText={pulse.id != null ? "Save changes" : "Create pulse"}
-                        activeText="Saving…"
-                        failedText="Save failed"
-                        successText="Saved"
-                    />
-                  <Link to="/pulse" className="Button ml2">Cancel</Link>
-                </div>
+                <div className="border-top">
+                    <div className="wrapper wrapper--trim flex align-center border-top py3">
+                        <ActionButton
+                            actionFn={this.save}
+                            className={cx("Button Button--primary", { "disabled": !isValid })}
+                            normalText={pulse.id != null ? "Save changes" : "Create pulse"}
+                            activeText="Saving…"
+                            failedText="Save failed"
+                            successText="Saved"
+                        />
+                      <Link to="/pulse" className="Button ml2">Cancel</Link>
+                  </div>
+              </div>
             </div>
         );
     }
