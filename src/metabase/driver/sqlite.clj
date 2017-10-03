@@ -41,7 +41,8 @@
    [#"DECIMAL"  :type/Decimal]
    [#"BOOLEAN"  :type/Boolean]
    [#"DATETIME" :type/DateTime]
-   [#"DATE"     :type/Date]])
+   [#"DATE"     :type/Date]
+   [#"TIME"     :type/Time]])
 
 ;; register the SQLite concatnation operator `||` with HoneySQL as `sqlite-concat`
 ;; (hsql/format (hsql/call :sqlite-concat :a :b)) -> "(a || b)"

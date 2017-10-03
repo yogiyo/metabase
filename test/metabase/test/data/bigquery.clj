@@ -1,6 +1,8 @@
 (ns metabase.test.data.bigquery
-  (:require [clojure.string :as s]
-            [environ.core :refer [env]]
+  (:require [clj-time
+             [coerce :as tcoerce]
+             [format :as tformat]]
+            [clojure.string :as s]
             [medley.core :as m]
             [metabase.driver
              [bigquery :as bigquery]
@@ -8,13 +10,11 @@
             [metabase.test.data
              [datasets :as datasets]
              [interface :as i]]
-            [metabase.test.util :refer [resolve-private-vars]]
             [metabase.util :as u])
   (:import com.google.api.client.util.DateTime
            com.google.api.services.bigquery.Bigquery
-           [com.google.api.services.bigquery.model Dataset DatasetReference QueryRequest Table
-            TableDataInsertAllRequest TableDataInsertAllRequest$Rows TableFieldSchema TableReference TableRow
-            TableSchema]
+           [com.google.api.services.bigquery.model Dataset DatasetReference QueryRequest Table TableDataInsertAllRequest TableDataInsertAllRequest$Rows TableFieldSchema TableReference TableRow TableSchema]
+           java.sql.Time
            metabase.driver.bigquery.BigQueryDriver))
 
 ;;; # ------------------------------------------------------------ CONNECTION DETAILS ------------------------------------------------------------
@@ -57,7 +57,7 @@
   (println (u/format-color 'red "Deleted BigQuery dataset '%s'." dataset-id)))
 
 (def ^:private ^:const valid-field-types
-  #{:BOOLEAN :FLOAT :INTEGER :RECORD :STRING :TIMESTAMP})
+  #{:BOOLEAN :FLOAT :INTEGER :RECORD :STRING :TIMESTAMP :TIME})
 
 (defn- create-table! [^String dataset-id, ^String table-id, field-name->type]
   {:pre [(seq dataset-id) (seq table-id) (map? field-name->type) (every? (partial contains? valid-field-types) (vals field-name->type))]}
@@ -95,9 +95,10 @@
                                 (.setRows (for [row-map row-maps]
                                             (let [data (TableRow.)]
                                               (doseq [[k v] row-map
-                                                      :let [v (if (instance? honeysql.types.SqlCall v)
+                                                      :let [v (cond
+                                                                (instance? honeysql.types.SqlCall v)
                                                                 (timestamp-honeysql-form->GoogleDateTime v)
-                                                                v)]]
+                                                                :else v)]]
                                                 (.set data (name k) v))
                                               (doto (TableDataInsertAllRequest$Rows.)
                                                 (.setJson data))))))))
@@ -123,7 +124,7 @@
    :type/Float      :FLOAT
    :type/Integer    :INTEGER
    :type/Text       :STRING
-   :type/Time       :TIMESTAMP})
+   :type/Time       :TIME})
 
 (defn- fielddefs->field-name->base-type
   "Convert FIELD-DEFINITIONS to a format appropriate for passing to `create-table!`."
@@ -133,6 +134,14 @@
                                           (println (u/format-color 'red "Don't know what BigQuery type to use for base type: %s" base-type))
                                           (throw (Exception. (format "Don't know what BigQuery type to use for base type: %s" base-type))))})))
 
+(defn- time->string
+  "Coerces `T` to a Joda DateTime object and returns it's String
+  representation."
+  [t]
+  (->> t
+       tcoerce/to-date-time
+       (tformat/unparse #'bigquery/bigquery-time-format)))
+
 (defn- tabledef->prepared-rows
   "Convert TABLE-DEFINITION to a format approprate for passing to `insert-data!`."
   [{:keys [field-definitions rows]}]
@@ -140,9 +149,15 @@
   (let [field-names (map :field-name field-definitions)]
     (for [[i row] (m/indexed rows)]
       (assoc (zipmap field-names (for [v row]
-                                   (u/prog1 (if (instance? java.util.Date v)
+                                   (u/prog1 (cond
+
+                                              (instance? Time v)
+                                              (time->string v)
+
+                                              (instance? java.util.Date v)
                                               (DateTime. ^java.util.Date v) ; convert to Google version of DateTime, otherwise it doesn't work (!)
-                                              v)
+
+                                              :else v)
                                             (assert (not (nil? <>)))))) ; make sure v is non-nil
              :id (inc i)))))
 

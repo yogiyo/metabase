@@ -20,7 +20,7 @@
             [ring.util.codec :as codec])
   (:import clojure.lang.Keyword
            [java.net InetAddress InetSocketAddress Socket]
-           [java.sql SQLException Timestamp]
+           [java.sql SQLException Time Timestamp]
            [java.text Normalizer Normalizer$Form]
            [java.util Calendar Date TimeZone]
            javax.xml.bind.DatatypeConverter
@@ -113,6 +113,22 @@
   java.sql.Timestamp     (->iso-8601-datetime [this timezone-id] (time/unparse (ISO8601Formatter timezone-id) (coerce/from-sql-time this)))
   org.joda.time.DateTime (->iso-8601-datetime [this timezone-id] (time/unparse (ISO8601Formatter timezone-id) this)))
 
+(def ^:private time-formatter
+  ;; memoize this because the formatters are static. They must be distinct per timezone though.
+  (memoize (fn [timezone-id]
+             (if timezone-id
+               (time/with-zone (time/formatters :time) (t/time-zone-for-id timezone-id))
+               (time/formatters :time)))))
+
+(defn format-time
+  "Returns a string representation of the time found in `T`"
+  [t time-zone-id]
+  (time/unparse (time-formatter time-zone-id) (coerce/to-date-time t)))
+
+(defn is-time?
+  "Returns true if `V` is a Time object"
+  [v]
+  (instance? Time v))
 
 ;;; ## Date Stuff
 

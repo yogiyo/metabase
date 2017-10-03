@@ -4,6 +4,7 @@
    Objects that implement `IDriverTestExtensions` know how to load a `DatabaseDefinition` into an
    actual physical RDMS database. This functionality allows us to easily test with multiple datasets."
   (:require [clojure.string :as str]
+            [clojure.tools.reader.edn :as edn]
             [environ.core :refer [env]]
             [metabase
              [db :as db]
@@ -158,6 +159,11 @@
                                                            :table-definitions (mapv (partial apply create-table-definition)
                                                                                     table-name+field-definition-maps+rows)})))
 
+(def ^:private ^:const edn-definitions-dir "./test/metabase/test/data/dataset_definitions/")
+
+(defn slurp-edn-table-def [dbname]
+  (edn/read-string (slurp (str edn-definitions-dir dbname ".edn"))))
+
 (defn update-table-def
   "Function useful for modifying a table definition before it's
   applied. Will invoke `UPDATE-TABLE-DEF-FN` on the vector of column
@@ -180,7 +186,9 @@
   `(def ~(vary-meta dataset-name assoc :tag DatabaseDefinition)
      (apply create-database-definition ~(name dataset-name) ~table-name+field-definition-maps+rows)))
 
-
+(defmacro def-database-definition-edn [dbname]
+  `(def-database-definition ~dbname
+     ~(slurp-edn-table-def (name dbname))))
 
 ;;; ## Convenience + Helper Functions
 ;; TODO - should these go here, or in `metabase.test.data`?

@@ -25,11 +25,16 @@
   "Our SQLite JDBC driver doesn't seem to like Dates/Timestamps so just convert them to strings before INSERTing them into the Database."
   [insert!]
   (fn [rows]
-    (insert! (for [row rows]
-               (into {} (for [[k v] row]
-                          [k (if-not (instance? java.util.Date v)
-                               v
-                               (hsql/call :datetime (hx/literal (u/date->iso-8601 v))))]))))))
+    (insert! (doall (for [row rows]
+                      (into {} (for [[k v] row]
+                                 [k (cond
+                                      (instance? java.sql.Time v)
+                                      (hsql/call :time (hx/literal (u/format-time v "UTC")))
+
+                                      (instance? java.util.Date v)
+                                      (hsql/call :datetime (hx/literal (u/date->iso-8601 v)))
+
+                                      :else v)])))))))
 
 (u/strict-extend SQLiteDriver
   generic/IGenericSQLTestExtensions
