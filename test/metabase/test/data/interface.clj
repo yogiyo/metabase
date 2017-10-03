@@ -160,11 +160,10 @@
 
 (defmacro def-database-definition
   "Convenience for creating a new `DatabaseDefinition` named by the symbol DATASET-NAME."
-  [^clojure.lang.Symbol dataset-name & table-name+field-definition-maps+rows]
+  [^clojure.lang.Symbol dataset-name table-name+field-definition-maps+rows]
   {:pre [(symbol? dataset-name)]}
   `(def ~(vary-meta dataset-name assoc :tag DatabaseDefinition)
-     (create-database-definition ~(name dataset-name)
-       ~@table-name+field-definition-maps+rows)))
+     (apply create-database-definition ~(name dataset-name) ~table-name+field-definition-maps+rows)))
 
 
 

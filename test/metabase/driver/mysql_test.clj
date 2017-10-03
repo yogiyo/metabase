@@ -17,9 +17,9 @@
 
 ;; MySQL allows 0000-00-00 dates, but JDBC does not; make sure that MySQL is converting them to NULL when returning them like we asked
 (def-database-definition ^:private ^:const all-zero-dates
-  ["exciting-moments-in-history"
-   [{:field-name "moment", :base-type :type/DateTime}]
-   [["0000-00-00"]]])
+  [["exciting-moments-in-history"
+     [{:field-name "moment", :base-type :type/DateTime}]
+     [["0000-00-00"]]]])
 
 (expect-with-engine :mysql
   [[1 nil]]
@@ -43,12 +43,12 @@
 ;; Test how TINYINT(1) columns are interpreted. By default, they should be interpreted as integers,
 ;; but with the correct additional options, we should be able to change that -- see https://github.com/metabase/metabase/issues/3506
 (def-database-definition ^:private ^:const tiny-int-ones
-  ["number-of-cans"
-   [{:field-name "thing",          :base-type :type/Text}
-    {:field-name "number-of-cans", :base-type {:native "tinyint(1)"}}]
-   [["Six Pack"              6]
-    ["Toucan"                2]
-    ["Empty Vending Machine" 0]]])
+  [["number-of-cans"
+     [{:field-name "thing",          :base-type :type/Text}
+      {:field-name "number-of-cans", :base-type {:native "tinyint(1)"}}]
+     [["Six Pack"              6]
+      ["Toucan"                2]
+      ["Empty Vending Machine" 0]]]])
 
 (defn- db->fields [db]
   (let [table-ids (db/select-ids 'Table :db_id (u/get-id db))]

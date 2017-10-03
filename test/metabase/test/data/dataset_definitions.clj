@@ -12,7 +12,7 @@
 ;; TODO - make rows be lazily loadable for DB definitions from a file
 (defmacro ^:private def-database-definition-edn [dbname]
   `(def-database-definition ~dbname
-     ~@(edn/read-string (slurp (str edn-definitions-dir (name dbname) ".edn")))))
+     ~(edn/read-string (slurp (str edn-definitions-dir (name dbname) ".edn")))))
 
 ;; The O.G. "Test Database" dataset
 (def-database-definition-edn test-data)
