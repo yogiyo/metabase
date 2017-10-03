@@ -158,6 +158,21 @@
                                                            :table-definitions (mapv (partial apply create-table-definition)
                                                                                     table-name+field-definition-maps+rows)})))
 
+(defn update-table-def
+  "Function useful for modifying a table definition before it's
+  applied. Will invoke `UPDATE-TABLE-DEF-FN` on the vector of column
+  definitions and `UPDATE-ROWS-FN` with the vector of rows in the
+  database definition. `TABLE-DEF` is the database
+  definition (typically used directly in a `def-database-definition`
+  invocation."
+  [table-name-to-update update-table-def-fn update-rows-fn table-def]
+  (vec
+   (for [[table-name table-def rows] table-def
+         :when (= table-name table-name-to-update)]
+     [table-name
+      (update-table-def-fn table-def)
+      (update-rows-fn rows)])))
+
 (defmacro def-database-definition
   "Convenience for creating a new `DatabaseDefinition` named by the symbol DATASET-NAME."
   [^clojure.lang.Symbol dataset-name table-name+field-definition-maps+rows]
