@@ -6711,7 +6711,7 @@ prop-types@15.5.8, prop-types@~15.5.7:
   dependencies:
     fbjs "^0.8.9"
 
-prop-types@^15.5.10, prop-types@^15.5.4, prop-types@^15.5.6, prop-types@^15.5.7, prop-types@^15.5.8, prop-types@^15.6.0:
+prop-types@15.x, prop-types@^15.5.10, prop-types@^15.5.4, prop-types@^15.5.6, prop-types@^15.5.7, prop-types@^15.5.8, prop-types@^15.6.0:
   version "15.6.0"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.6.0.tgz#ceaf083022fc46b4a35f69e13ef75aed0d639856"
   dependencies:
@@ -6885,13 +6885,7 @@ react-dom@^15.5.3, react-dom@^15.5.4:
     object-assign "^4.1.0"
     prop-types "~15.5.7"
 
-react-draggable@^2.1.0:
-  version "2.2.3"
-  resolved "https://registry.yarnpkg.com/react-draggable/-/react-draggable-2.2.3.tgz#17628cb8aaefed639d38e0021b978a685d80b08b"
-  dependencies:
-    classnames "^2.2.5"
-
-react-draggable@^3.0.3:
+"react-draggable@^2.2.6 || ^3.0.3", react-draggable@^3.0.3:
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/react-draggable/-/react-draggable-3.0.3.tgz#a6f9b3a7171981b76dadecf238316925cb9eacf4"
   dependencies:
@@ -6950,11 +6944,12 @@ react-redux@^5.0.6:
     loose-envify "^1.1.0"
     prop-types "^15.5.10"
 
-react-resizable@^1.0.1:
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/react-resizable/-/react-resizable-1.6.0.tgz#7968c456538a349db1742680f9a05dc9780e6188"
+react-resizable@^1.7.5:
+  version "1.7.5"
+  resolved "https://registry.yarnpkg.com/react-resizable/-/react-resizable-1.7.5.tgz#83eb75bb3684da6989bbbf4f826e1470f0af902e"
   dependencies:
-    react-draggable "^2.1.0"
+    prop-types "15.x"
+    react-draggable "^2.2.6 || ^3.0.3"
 
 react-retina-image@^2.0.4:
   version "2.0.4"
