@@ -19,7 +19,7 @@
   (:import clojure.lang.Keyword
            [java.sql PreparedStatement ResultSet ResultSetMetaData SQLException]
            [java.util Calendar TimeZone]
-           [metabase.query_processor.interface AgFieldRef BinnedField DateTimeField DateTimeValue Expression ExpressionRef Field FieldLiteral RelativeDateTimeValue Value]))
+           [metabase.query_processor.interface AgFieldRef BinnedField DateTimeField DateTimeValue Expression ExpressionRef Field FieldLiteral RelativeDateTimeValue TimeField TimeValue Value]))
 
 (def ^:dynamic *query*
   "The outer query currently being processed."
@@ -112,6 +112,10 @@
   (formatted [{unit :unit, field :field}]
     (sql/date (driver) unit (formatted field)))
 
+  TimeField
+  (formatted [{field :field}]
+    (formatted field))
+
   BinnedField
   (formatted [{:keys [bin-width min-value max-value field]}]
     (let [formatted-field (formatted field)]
@@ -138,11 +142,16 @@
         aggregation-type)))
 
   Value
-  (formatted [value] (sql/prepare-value (driver) value))
+  (formatted [value]
+    (sql/prepare-value (driver) value))
 
   DateTimeValue
   (formatted [{{unit :unit} :field, :as value}]
     (sql/date (driver) unit (sql/prepare-value (driver) value)))
+
+  TimeValue
+  (formatted [value]
+    (sql/prepare-value (driver) value))
 
   RelativeDateTimeValue
   (formatted [{:keys [amount unit], {field-unit :unit} :field}]
@@ -409,6 +418,9 @@
   (fn [^PreparedStatement stmt params]
     (mapv (fn [^Integer i value]
             (cond
+
+              (and tz (instance? java.sql.Time value))
+              (.setTime stmt i value (Calendar/getInstance tz))
 
               (and tz (instance? java.sql.Timestamp value))
               (.setTimestamp stmt i value (Calendar/getInstance tz))

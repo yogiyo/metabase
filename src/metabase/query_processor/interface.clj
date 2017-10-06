@@ -10,7 +10,7 @@
             [schema.core :as s]
             [metabase.sync.interface :as i])
   (:import clojure.lang.Keyword
-           java.sql.Timestamp))
+           [java.sql Time Timestamp]))
 
 ;;; # ------------------------------------------------------------ CONSTANTS ------------------------------------------------------------
 
@@ -172,6 +172,14 @@
                             unit  :- DatetimeFieldUnit]
   clojure.lang.Named
   (getName [_] (name field)))
+
+;; TimeField is just a field wrapper that indicates string should be interpretted as a time
+(s/defrecord TimeField [field :- (s/cond-pre Field FieldLiteral)]
+  clojure.lang.Named
+  (getName [_] (name field)))
+
+(s/defrecord TimeValue [value :- Time
+                        field :- TimeField])
 
 (def binning-strategies
   "Valid binning strategies for a `BinnedField`"

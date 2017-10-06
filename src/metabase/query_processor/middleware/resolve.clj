@@ -22,7 +22,7 @@
              [db :as db]
              [hydrate :refer [hydrate]]])
   (:import java.util.TimeZone
-           [metabase.query_processor.interface DateTimeField DateTimeValue ExpressionRef Field FieldPlaceholder RelativeDatetime RelativeDateTimeValue Value ValuePlaceholder]))
+           [metabase.query_processor.interface DateTimeField DateTimeValue ExpressionRef Field FieldPlaceholder RelativeDatetime RelativeDateTimeValue TimeField TimeValue Value ValuePlaceholder]))
 
 ;; # ---------------------------------------------------------------------- UTIL FNS ------------------------------------------------------------
 
@@ -174,6 +174,9 @@
       (i/map->DateTimeField {:field field
                              :unit  (or datetime-unit :day)}) ; default to `:day` if a unit wasn't specified
 
+      (isa? base-type :type/Time)
+      (i/map->TimeField {:field field})
+
       binning-strategy
       (resolve-binned-field this field)
 
@@ -222,7 +225,23 @@
         nil
 
         :else
-        (throw (Exception. (format "Invalid value '%s': expected a DateTime." value)))))))
+        (throw (Exception. (format "Invalid value '%s': expected a DateTime." value))))))
+
+  TimeField
+  (parse-value [this value]
+    (let [tz                 (when-let [tz-id ^String (setting/get :report-timezone)]
+                               (TimeZone/getTimeZone tz-id))
+          parsed-string-time (some-> value
+                                     (u/str->time tz))]
+      (cond
+        parsed-string-time
+        (s/validate TimeValue (i/map->TimeValue {:field this, :value parsed-string-time}))
+
+        (nil? value)
+        nil
+
+        :else
+        (throw (Exception. (format "Invalid value '%s': expected a Time." value)))))))
 
 (defn- value-ph-resolve-field [{:keys [field-placeholder value]} field-id->field]
   (let [resolved-field (resolve-field field-placeholder field-id->field)]

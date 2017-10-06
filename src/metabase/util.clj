@@ -911,3 +911,22 @@
                   parsed-date (ignore-exceptions (time/parse formatter-with-tz date-str))]
             :when parsed-date]
         parsed-date)))))
+
+(def ^:private ordered-time-parsers
+  (let [most-likely-default-formatters [:hour-minute :hour-minute-second :hour-minute-second-fraction]]
+    (concat (map time/formatters most-likely-default-formatters)
+            [(time/formatter "HH:mmZ") (time/formatter "HH:mm:SSZ") (time/formatter "HH:mm:SS.SSSZ")])))
+
+(defn str->time
+  "Parse `TIME-STR` and return a `java.sql.Time` instance. Returns nil
+  if `TIME-STR` can't be parsed."
+  ([^String time-str]
+   (str->time time-str nil))
+  ([^String time-str ^TimeZone tz]
+   (let [dtz (some-> tz .getID t/time-zone-for-id)]
+     (first
+      (for [formatter ordered-time-parsers
+            :let [formatter-with-tz (time/with-zone formatter dtz)
+                  parsed-time (ignore-exceptions (time/parse formatter-with-tz time-str))]
+            :when parsed-time]
+        (Time. (coerce/to-long parsed-time)))))))
