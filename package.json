@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "ace-builds": "^1.2.8",
-    "babel-polyfill": "^6.6.1",
+    "babel-polyfill": "^6.26.0",
     "chevrotain": "0.21.0",
     "classnames": "^2.1.3",
     "color": "^1.0.3",
