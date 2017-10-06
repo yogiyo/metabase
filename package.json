@@ -45,7 +45,7 @@
     "react-collapse": "^4.0.3",
     "react-copy-to-clipboard": "^5.0.1",
     "react-dom": "^15.5.4",
-    "react-draggable": "^2.2.3",
+    "react-draggable": "^3.0.3",
     "react-element-to-jsx-string": "^6.3.0",
     "react-height": "^2.1.1",
     "react-motion": "^0.4.5",
