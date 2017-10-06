@@ -7867,9 +7867,9 @@ sshpk@^1.7.0:
     jsbn "~0.1.0"
     tweetnacl "~0.14.0"
 
-stack-source-map@^1.0.4:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/stack-source-map/-/stack-source-map-1.0.6.tgz#60216e4d4d0f2b15f3c6bd56abeca5b4e0f0d0d4"
+stack-source-map@^1.0.7:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/stack-source-map/-/stack-source-map-1.0.7.tgz#ca2d72aafbcc340c5474de3b6a158d0f3495f4bc"
   dependencies:
     path-browserify "0.0.0"
     source-map "^0.5.6"
