@@ -38,7 +38,7 @@
     "password-generator": "^2.0.1",
     "prop-types": "^15.6.0",
     "react": "^15.5.4",
-    "react-addons-css-transition-group": "^15.5.2",
+    "react-addons-css-transition-group": "^15.6.2",
     "react-addons-perf": "^15.2.1",
     "react-addons-shallow-compare": "^15.2.1",
     "react-ansi-style": "^1.0.0",
