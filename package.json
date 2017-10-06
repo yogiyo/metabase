@@ -36,7 +36,7 @@
     "normalizr": "^3.2.3",
     "number-to-locale-string": "^1.0.1",
     "password-generator": "^2.0.1",
-    "prop-types": "^15.5.7",
+    "prop-types": "^15.6.0",
     "react": "^15.5.4",
     "react-addons-css-transition-group": "^15.5.2",
     "react-addons-perf": "^15.2.1",
