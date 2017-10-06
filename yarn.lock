@@ -7560,9 +7560,9 @@ sax@^1.2.1, sax@~1.2.1:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.2.tgz#fd8631a23bc7826bef5d871bdb87378c95647828"
 
-screenfull@^3.0.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/screenfull/-/screenfull-3.1.0.tgz#55f6febea6cd732a6e0e3b884c96813f7efed3b2"
+screenfull@^3.3.1:
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/screenfull/-/screenfull-3.3.1.tgz#5eea886b412043af89e2e5cc4433f894d0ebb90b"
 
 selenium-webdriver@^2.53.3:
   version "2.53.3"
