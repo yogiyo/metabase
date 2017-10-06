@@ -43,7 +43,7 @@
     "react-addons-shallow-compare": "^15.6.2",
     "react-ansi-style": "^1.0.0",
     "react-collapse": "^4.0.3",
-    "react-copy-to-clipboard": "^4.2.3",
+    "react-copy-to-clipboard": "^5.0.1",
     "react-dom": "^15.5.4",
     "react-draggable": "^2.2.3",
     "react-element-to-jsx-string": "^6.3.0",

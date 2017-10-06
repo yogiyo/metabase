@@ -6865,11 +6865,12 @@ react-collapse@^4.0.3:
   dependencies:
     prop-types "^15.5.8"
 
-react-copy-to-clipboard@^4.2.3:
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/react-copy-to-clipboard/-/react-copy-to-clipboard-4.3.0.tgz#5d2e8ec3fa1900ea902ce0fe34db2d829ad9c3ef"
+react-copy-to-clipboard@^5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/react-copy-to-clipboard/-/react-copy-to-clipboard-5.0.1.tgz#8eae107bb400be73132ed3b6a7b4fb156090208e"
   dependencies:
     copy-to-clipboard "^3"
+    prop-types "^15.5.8"
 
 react-dom@^15.5.3, react-dom@^15.5.4:
   version "15.5.4"
