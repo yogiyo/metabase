@@ -120,7 +120,7 @@
     "json-loader": "^0.5.7",
     "jsonwebtoken": "^8.0.1",
     "karma": "^1.7.1",
-    "karma-chrome-launcher": "^2.0.0",
+    "karma-chrome-launcher": "^2.2.0",
     "karma-jasmine": "^1.1.0",
     "karma-junit-reporter": "^1.1.0",
     "karma-nyan-reporter": "^0.2.2",
