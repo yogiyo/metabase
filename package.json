@@ -91,7 +91,7 @@
     "babel-register": "^6.26.0",
     "banner-webpack-plugin": "^0.2.3",
     "concurrently": "^3.5.0",
-    "css-loader": "^0.28.0",
+    "css-loader": "^0.28.7",
     "documentation": "^4.0.0-rc.1",
     "enzyme": "^2.7.0",
     "eslint": "^3.5.0",
