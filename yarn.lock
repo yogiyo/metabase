@@ -3025,9 +3025,9 @@ eslint-plugin-import@^2.7.0:
     minimatch "^3.0.3"
     read-pkg-up "^2.0.0"
 
-eslint-plugin-jasmine@^2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-jasmine/-/eslint-plugin-jasmine-2.2.0.tgz#7135879383c39a667c721d302b9f20f0389543de"
+eslint-plugin-jasmine@^2.9.1:
+  version "2.9.1"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-jasmine/-/eslint-plugin-jasmine-2.9.1.tgz#22e19a59f16f3a5f643a04aba04438d0e3047030"
 
 eslint-plugin-react@^6.3.0:
   version "6.10.3"
