@@ -8089,9 +8089,9 @@ sane@~1.5.0:
     walker "~1.0.5"
     watch "~0.10.0"
 
-sauce-connect-launcher@^1.1.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/sauce-connect-launcher/-/sauce-connect-launcher-1.2.1.tgz#58acc2ab030087393f70823b33feddc4ba1dc0f4"
+sauce-connect-launcher@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/sauce-connect-launcher/-/sauce-connect-launcher-1.2.2.tgz#7346cc8fbdc443191323439b0733451f5f3521f2"
   dependencies:
     adm-zip "~0.4.3"
     async "^2.1.2"
