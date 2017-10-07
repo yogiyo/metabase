@@ -96,7 +96,7 @@
     "enzyme": "^2.7.0",
     "eslint": "^3.5.0",
     "eslint-import-resolver-webpack": "^0.8.3",
-    "eslint-loader": "^1.6.0",
+    "eslint-loader": "^1.9.0",
     "eslint-plugin-flowtype": "^2.22.0",
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jasmine": "^2.2.0",
