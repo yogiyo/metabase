@@ -126,7 +126,7 @@
     "karma-nyan-reporter": "^0.2.2",
     "karma-webpack": "^1.7.0",
     "lint-staged": "^4.2.3",
-    "postcss-cssnext": "^2.4.0",
+    "postcss-cssnext": "^3.0.2",
     "postcss-import": "^9.0.0",
     "postcss-loader": "^1.2.1",
     "postcss-url": "^6.0.4",
