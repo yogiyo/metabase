@@ -2,70 +2,90 @@ import React, { Component } from "react";
 
 import CheckBox from "metabase/components/CheckBox.jsx";
 import Icon from "metabase/components/Icon.jsx";
-import { sortable } from "react-sortable";
+import {
+    SortableContainer,
+    SortableElement,
+    SortableHandle,
+    arrayMove
+} from "react-sortable-hoc";
 
 import cx from "classnames";
 
-@sortable
-class OrderedFieldListItem extends Component {
-  render() {
+const FieldListHandle = SortableHandle(() =>
+<Icon
+    className="flex-align-right text-grey-2 mr1 cursor-pointer"
+    name="grabber"
+    width={14}
+    height={14}
+/>
+)
+
+const FieldListItem = SortableElement(({
+    item,
+    index,
+    columnNames,
+    setEnabled
+}) => (
+    <li
+        className={cx("flex align-center p1", {
+            "text-grey-2": !item.enabled
+        })}
+    >
+        <CheckBox
+            checked={item.enabled}
+            onChange={e => setEnabled(index, e.target.checked)}
+        />
+        <span className="ml1 h4">
+            {columnNames[item.name]}
+        </span>
+        <FieldListHandle />
+    </li>
+));
+
+const FieldListContainer = SortableContainer(({ items, columnNames }) => {
     return (
-      <div {...this.props} className="list-item">{this.props.children}</div>
-    )
-  }
-}
+        <ul>
+            {items.map((item, index) => (
+                <FieldListItem
+                    key={`item-${index}`}
+                    index={index}
+                    item={item}
+                    columnNames={columnNames}
+                />
+            ))}
+        </ul>
+    );
+});
 
 export default class ChartSettingOrderedFields extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            draggingIndex: null,
-            data: { items: [...this.props.value] }
+            items: [...this.props.value]
         };
     }
 
     componentWillReceiveProps(nextProps) {
-        this.setState({ data: { items: [...nextProps.value] } })
+        this.setState({
+            items: [...nextProps.value]
+        });
     }
-
-    updateState = (obj) => {
-        this.setState(obj);
-        if (obj.draggingIndex == null) {
-            this.props.onChange([...this.state.data.items]);
-        }
-    }
-
-    setEnabled = (index, checked) => {
-        const items = [...this.state.data.items];
-        items[index] = { ...items[index], enabled: checked };
-        this.setState({ data: { items } });
-        this.props.onChange([...items]);
-    }
-
+    onSortEnd = ({ oldIndex, newIndex }) => {
+        this.setState({
+            items: arrayMove(this.state.items, oldIndex, newIndex)
+        }, () =>
+            this.props.onChange(this.state.items)
+        );
+    };
     render() {
         const { columnNames } = this.props;
         return (
-            <div className="list">
-                {this.state.data.items.map((item, i) =>
-                    <OrderedFieldListItem
-                        key={i}
-                        updateState={this.updateState}
-                        items={this.state.data.items}
-                        draggingIndex={this.state.draggingIndex}
-                        sortId={i}
-                        outline="list"
-                    >
-                        <div className={cx("flex align-center p1", { "text-grey-2": !item.enabled })} >
-                            <CheckBox
-                                checked={item.enabled}
-                                onChange={e => this.setEnabled(i, e.target.checked)}
-                            />
-                            <span className="ml1 h4">{columnNames[item.name]}</span>
-                            <Icon className="flex-align-right text-grey-2 mr1 cursor-pointer" name="grabber" width={14} height={14}/>
-                        </div>
-                    </OrderedFieldListItem>
-                )}
-            </div>
-        )
-  }
+            <FieldListContainer
+                items={this.state.items}
+                onSortEnd={this.onSortEnd}
+                columnNames={columnNames}
+                useDragHandle
+            />
+        );
+    }
 }
