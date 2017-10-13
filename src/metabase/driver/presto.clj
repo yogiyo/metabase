@@ -184,7 +184,7 @@
   nil           (prepare-value [_] nil)
   DateTimeValue (prepare-value [{:keys [value]}] (prepare-value value))
   TimeValue     (prepare-value [{:keys [value timezone-id]}] (hx/cast :time (time->str value timezone-id)))
-  Time          (prepare-value [value] (time->str value))
+  Time          (prepare-value [value] (hx/->time (time->str value)))
   Value         (prepare-value [{:keys [value]}] (prepare-value value))
   String        (prepare-value [this] (hx/literal (str/replace this "'" "''")))
   Boolean       (prepare-value [this] (hsql/raw (if this "TRUE" "FALSE")))

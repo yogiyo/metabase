@@ -234,7 +234,6 @@
                                (TimeZone/getTimeZone tz-id))
           parsed-string-time (some-> value
                                      (u/str->time tz))]
-      (println "Resolving a parsed time" parsed-string-time)
       (cond
         parsed-string-time
         (s/validate TimeValue (i/map->TimeValue {:field this, :value parsed-string-time :timezone-id tz-id}))

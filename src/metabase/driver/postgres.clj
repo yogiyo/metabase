@@ -171,12 +171,12 @@
     message))
 
 (defn- prepare-value [{value :value, {:keys [base-type]} :field}]
-  (if-not value
-    value
-    (cond
-      (isa? base-type :type/UUID)      (UUID/fromString value)
-      (isa? base-type :type/IPAddress) (hx/cast :inet value)
-      :else                            value)))
+  (cond
+    (not value)                      value
+    (hx/time? value)                 (hx/->time value)
+    (isa? base-type :type/UUID)      (UUID/fromString value)
+    (isa? base-type :type/IPAddress) (hx/cast :inet value)
+    :else                            value))
 
 (defn- string-length-fn [field-key]
   (hsql/call :char_length (hx/cast :VARCHAR field-key)))

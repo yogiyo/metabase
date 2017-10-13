@@ -31,7 +31,7 @@
            [com.google.api.services.bigquery.model QueryRequest QueryResponse Table TableCell TableFieldSchema TableList TableList$Tables TableReference TableRow TableSchema]
            java.sql.Time
            [java.util Collections Date]
-           [metabase.query_processor.interface DateTimeValue Value]))
+           [metabase.query_processor.interface DateTimeValue TimeValue Value]))
 
 ;;; ------------------------------------------------------------ Client ------------------------------------------------------------
 
@@ -297,6 +297,7 @@
   (let [sql     (str "-- " (qputil/query->remark outer-query) "\n" (if (seq params)
                                                                      (unprepare/unprepare (cons sql params))
                                                                      sql))
+        _ (println "running this on bigquery" sql)
         results (process-native* database sql)
         results (if mbql?
                   (post-process-mbql dataset-id table-name results)
@@ -311,6 +312,11 @@
 (extend-protocol IPrepareValue
   nil           (prepare-value [_] nil)
   DateTimeValue (prepare-value [{:keys [value]}] (prepare-value value))
+  TimeValue     (prepare-value [{:keys [value]}] (->> value
+                                                      clj-time.coerce/to-date-time
+                                                      (tformat/unparse bigquery-time-format)
+                                                      prepare-value
+                                                      hx/->time))
   Value         (prepare-value [{:keys [value]}] (prepare-value value))
   String        (prepare-value [this] (hx/literal this))
   Boolean       (prepare-value [this] (hsql/raw (if this "TRUE" "FALSE")))

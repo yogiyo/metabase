@@ -125,6 +125,11 @@
     :quarter-of-year (hx/quarter expr)
     :year            (hx/year expr)))
 
+(defn- prepare-value [{:keys [value]}]
+  (if (hx/time? value)
+    (hx/->time value)
+    value))
+
 (defn- date-interval [unit amount]
   (hsql/call :date_add
     :%now
@@ -193,6 +198,7 @@
           :column->base-type         (u/drop-first-arg column->base-type)
           :connection-details->spec  (u/drop-first-arg connection-details->spec)
           :date                      (u/drop-first-arg date)
+          :prepare-value             (u/drop-first-arg prepare-value)
           :excluded-schemas          (constantly #{"INFORMATION_SCHEMA"})
           :quote-style               (constantly :mysql)
           :string-length-fn          (u/drop-first-arg string-length-fn)

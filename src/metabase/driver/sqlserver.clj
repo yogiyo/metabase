@@ -143,9 +143,10 @@
 ;; SQLServer doesn't support `TRUE`/`FALSE`; it uses `1`/`0`, respectively; convert these booleans to numbers.
 (defn- prepare-value [{value :value}]
   (cond
-    (true? value)  1
-    (false? value) 0
-    :else          value))
+    (hx/time? value)   (hx/->time value)
+    (true? value)      1
+    (false? value)     0
+    :else              value))
 
 (defn- string-length-fn [field-key]
   (hsql/call :len (hx/cast :VARCHAR field-key)))

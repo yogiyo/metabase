@@ -1,5 +1,8 @@
 (ns metabase.driver.sqlite
-  (:require [clojure
+  (:require [clj-time
+             [coerce :as tcoerce]
+             [format :as tformat]]
+            [clojure
              [set :as set]
              [string :as s]]
             [honeysql
@@ -10,7 +13,8 @@
              [driver :as driver]
              [util :as u]]
             [metabase.driver.generic-sql :as sql]
-            [metabase.util.honeysql-extensions :as hx]))
+            [metabase.util.honeysql-extensions :as hx]
+            [clj-time.core :as t]))
 
 (defn- connection-details->spec
   "Create a database specification for a SQLite3 database. DETAILS should include a
@@ -140,9 +144,20 @@
 ;; SQLite doesn't support `TRUE`/`FALSE`; it uses `1`/`0`, respectively; convert these booleans to numbers.
 (defn- prepare-value [{value :value}]
   (cond
-    (true? value)  1
-    (false? value) 0
-    :else          value))
+    (hx/time? value)
+    (->> value
+         tcoerce/to-date-time
+         (tformat/unparse (tformat/formatters :hour-minute-second-ms))
+         (hsql/call :time))
+
+    (true? value)
+    1
+
+    (false? value)
+    0
+
+    :else
+    value))
 
 (defn- string-length-fn [field-key]
   (hsql/call :length field-key))

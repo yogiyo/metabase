@@ -4,7 +4,8 @@
             (honeysql [core :as hsql]
                       [format :as hformat]
                       helpers))
-  (:import honeysql.format.ToSql))
+  (:import honeysql.format.ToSql
+           java.sql.Time))
 
 (alter-meta! #'honeysql.core/format assoc :style/indent 1)
 (alter-meta! #'honeysql.core/call   assoc :style/indent 1)
@@ -126,6 +127,12 @@
 (defn ->timestamp                "CAST X to a `timestamp`."                [x] (cast :timestamp x))
 (defn ->timestamp-with-time-zone "CAST X to a `timestamp with time zone`." [x] (cast "timestamp with time zone" x))
 (defn ->integer                  "CAST X to a `integer`."                  [x] (cast :integer x))
+(defn ->time                     "CAST X to a `time` datatype"             [x] (cast :time x))
+
+(defn time?
+  "Returns true if X is an instance of `java.sql.Time`"
+  [x]
+  (and x (instance? Time x)))
 
 ;;; Random SQL fns. Not all DBs support all these!
 (def ^{:arglists '([& exprs])} floor   "SQL `floor` function."  (partial hsql/call :floor))
