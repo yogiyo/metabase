@@ -878,6 +878,20 @@
     (apply update m k f args)
     m))
 
+(defn- str->date-time-with-formatters
+  "Attempt to parse `DATE-STR` using `FORMATTERS`. First successful
+  parse is returned, or nil"
+  ([formatters date-str]
+   (str->date-time-with-formatters formatters date-str nil))
+  ([formatters ^String date-str ^TimeZone tz]
+   (let [dtz (some-> tz .getID t/time-zone-for-id)]
+     (first
+      (for [formatter formatters
+            :let [formatter-with-tz (time/with-zone formatter dtz)
+                  parsed-date (ignore-exceptions (time/parse formatter-with-tz date-str))]
+            :when parsed-date]
+        parsed-date)))))
+
 (def ^:private date-time-with-millis-no-t
   "This primary use for this formatter is for Dates formatted by the
   built-in SQLite functions"
@@ -904,13 +918,7 @@
   ([^String date-str]
    (str->date-time date-str nil))
   ([^String date-str ^TimeZone tz]
-   (let [dtz (some-> tz .getID t/time-zone-for-id)]
-     (first
-      (for [formatter ordered-date-parsers
-            :let [formatter-with-tz (time/with-zone formatter dtz)
-                  parsed-date (ignore-exceptions (time/parse formatter-with-tz date-str))]
-            :when parsed-date]
-        parsed-date)))))
+   (str->date-time-with-formatters ordered-date-parsers date-str tz)))
 
 (def ^:private ordered-time-parsers
   (let [most-likely-default-formatters [:hour-minute :hour-minute-second :hour-minute-second-fraction]]
@@ -920,13 +928,9 @@
 (defn str->time
   "Parse `TIME-STR` and return a `java.sql.Time` instance. Returns nil
   if `TIME-STR` can't be parsed."
-  ([^String time-str]
-   (str->time time-str nil))
-  ([^String time-str ^TimeZone tz]
-   (let [dtz (some-> tz .getID t/time-zone-for-id)]
-     (first
-      (for [formatter ordered-time-parsers
-            :let [formatter-with-tz (time/with-zone formatter dtz)
-                  parsed-time (ignore-exceptions (time/parse formatter-with-tz time-str))]
-            :when parsed-time]
-        (Time. (coerce/to-long parsed-time)))))))
+  ([^String date-str]
+   (str->date-time date-str nil))
+  ([^String date-str ^TimeZone tz]
+   (some-> (str->date-time-with-formatters ordered-time-parsers date-str tz)
+           coerce/to-long
+           Time.)))
