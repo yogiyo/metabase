@@ -179,7 +179,8 @@
   (getName [_] (name field)))
 
 (s/defrecord TimeValue [value :- Time
-                        field :- TimeField])
+                        field :- TimeField
+                        timezone-id :- (s/maybe String)])
 
 (def binning-strategies
   "Valid binning strategies for a `BinnedField`"

@@ -1,6 +1,7 @@
 (ns metabase.driver.presto
   (:require [clj-http.client :as http]
             [clj-time
+             [coerce :as tcoerce]
              [core :as time]
              [format :as tformat]]
             [clojure
@@ -19,8 +20,9 @@
             [metabase.util
              [honeysql-extensions :as hx]
              [ssh :as ssh]])
-  (:import java.util.Date
-           [metabase.query_processor.interface DateTimeValue Value]))
+  (:import java.sql.Time
+           java.util.Date
+           [metabase.query_processor.interface DateTimeValue TimeValue Value]))
 
 ;;; Presto API helpers
 
@@ -54,7 +56,7 @@
 (defn- field-type->parser [report-timezone field-type]
   (condp re-matches field-type
     #"decimal.*"                bigdec
-    #"time"                     (partial u/parse-date :hour-minute-second-ms)
+    #"time"                     #(java.sql.Time. (clj-time.coerce/to-long (u/parse-date :hour-minute-second-ms %)))
     #"time with time zone"      parse-time-with-tz
     #"timestamp"                (partial u/parse-date
                                          (if-let [report-tz (and report-timezone
@@ -85,8 +87,9 @@
 
 (defn- execute-presto-query! [details query]
   (ssh/with-ssh-tunnel [details-with-tunnel details]
-    (let [{{:keys [columns data nextUri error]} :body} (http/post (details->uri details-with-tunnel "/v1/statement")
-                                                                  (assoc (details->request details-with-tunnel) :body query, :as :json))]
+    (let [{{:keys [columns data nextUri error]} :body :as foo} (http/post (details->uri details-with-tunnel "/v1/statement")
+                                                                          (assoc (details->request details-with-tunnel) :body query, :as :json))]
+
       (when error
         (throw (ex-info (or (:message error) "Error preparing query.") error)))
       (let [rows    (parse-presto-results (:report-timezone details) (or columns []) (or data []))
@@ -151,7 +154,8 @@
     #"varbinary.*" :type/*
     #"json"        :type/Text       ; TODO - this should probably be Dictionary or something
     #"date"        :type/Date
-    #"time.*"      :type/DateTime
+    #"time"        :type/Time
+    #"time.+"      :type/DateTime
     #"array"       :type/Array
     #"map"         :type/Dictionary
     #"row.*"       :type/*          ; TODO - again, but this time we supposedly have a schema
@@ -165,21 +169,32 @@
      :fields (set (for [[name type] rows]
                     {:name name, :base-type (presto-type->base-type type)}))}))
 
+(def ^:private time-format (tformat/formatter "HH:mm:SS.SSS"))
+
+(defn- time->str
+  ([t]
+   (time->str t nil))
+  ([t tz-id]
+   (let [tz (clj-time.core/time-zone-for-id tz-id)]
+     (tformat/unparse (tformat/with-zone time-format tz) (tcoerce/to-date-time t)))))
+
 (defprotocol ^:private IPrepareValue
   (^:private prepare-value [this]))
 (extend-protocol IPrepareValue
   nil           (prepare-value [_] nil)
   DateTimeValue (prepare-value [{:keys [value]}] (prepare-value value))
+  TimeValue     (prepare-value [{:keys [value timezone-id]}] (hx/cast :time (time->str value timezone-id)))
+  Time          (prepare-value [value] (time->str value))
   Value         (prepare-value [{:keys [value]}] (prepare-value value))
   String        (prepare-value [this] (hx/literal (str/replace this "'" "''")))
   Boolean       (prepare-value [this] (hsql/raw (if this "TRUE" "FALSE")))
-  Date          (prepare-value [this] (hsql/call :from_iso8601_timestamp (hx/literal (u/date->iso-8601 this))))
+  Date          (prepare-value [this] (do (println "This is a date? " (class this)) (hsql/call :from_iso8601_timestamp (hx/literal (u/date->iso-8601 this)))))
   Number        (prepare-value [this] this)
   Object        (prepare-value [this] (throw (Exception. (format "Don't know how to prepare value %s %s" (class this) this)))))
 
 (defn- execute-query [{:keys [database settings], {sql :query, params :params} :native, :as outer-query}]
   (let [sql                    (str "-- " (qputil/query->remark outer-query) "\n"
-                                          (unprepare/unprepare (cons sql params) :quote-escape "'", :iso-8601-fn :from_iso8601_timestamp))
+                                    (unprepare/unprepare (cons sql params) :quote-escape "'", :iso-8601-fn :from_iso8601_timestamp))
         details                (merge (:details database) settings)
         {:keys [columns rows]} (execute-presto-query! details sql)
         columns                (for [[col name] (map vector columns (rename-duplicates (map :name columns)))]

@@ -151,7 +151,7 @@
 
   TimeValue
   (formatted [value]
-    (sql/prepare-value (driver) value))
+    (hx/cast :time (sql/prepare-value (driver) value)))
 
   RelativeDateTimeValue
   (formatted [{:keys [amount unit], {field-unit :unit} :field}]

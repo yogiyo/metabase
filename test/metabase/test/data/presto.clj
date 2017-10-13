@@ -1,5 +1,8 @@
 (ns metabase.test.data.presto
-  (:require [clojure.string :as s]
+  (:require [clj-time
+             [coerce :as tcoerce]
+             [format :as tformat]]
+            [clojure.string :as s]
             [honeysql
              [core :as hsql]
              [helpers :as h]]
@@ -10,7 +13,7 @@
   (:import java.util.Date
            metabase.driver.presto.PrestoDriver))
 
-(resolve-private-vars metabase.driver.presto execute-presto-query! presto-type->base-type quote-name quote+combine-names)
+(resolve-private-vars metabase.driver.presto execute-presto-query! presto-type->base-type quote-name quote+combine-names time->str)
 
 ;;; IDriverTestExtensions implementation
 
@@ -43,6 +46,7 @@
       :type/Text       "cast('' AS varchar(255))"
       :type/Date       "current_timestamp" ; this should probably be a date type, but the test data begs to differ
       :type/DateTime   "current_timestamp"
+      :type/Time       "cast(current_time as TIME)"
       "from_hex('00')") ; this might not be the best default ever
     ;; we were given a native type, map it back to a base-type and try again
     (field-base-type->dummy-value (presto-type->base-type field-type))))
