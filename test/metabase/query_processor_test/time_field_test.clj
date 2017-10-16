@@ -70,6 +70,9 @@
     (= :presto *engine*)
     [[3 "Kaneonuskatew Eiran" "00:15:00.000-08:00"]]
 
+    (= :mysql *engine*)
+    []
+
     (qpt/supports-report-timezone? *engine*)
     [[1 "Plato Yeshua" "00:30:00.000-08:00"]
      [4 "Simcha Yan" "00:30:00.000-08:00"]]
