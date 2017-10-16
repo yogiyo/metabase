@@ -99,7 +99,7 @@
   (->iso-8601-datetime ^String [this timezone-id]
     "Coerce object to an ISO8601 date-time string such as \"2015-11-18T23:55:03.841Z\" with a given TIMEZONE."))
 
-(def ^:private ISO8601Formatter
+(def ^:private ^{:arglists '([timezone-id])} ISO8601Formatter
   ;; memoize this because the formatters are static. They must be distinct per timezone though.
   (memoize (fn [timezone-id]
              (if timezone-id
@@ -113,7 +113,7 @@
   java.sql.Timestamp     (->iso-8601-datetime [this timezone-id] (time/unparse (ISO8601Formatter timezone-id) (coerce/from-sql-time this)))
   org.joda.time.DateTime (->iso-8601-datetime [this timezone-id] (time/unparse (ISO8601Formatter timezone-id) this)))
 
-(def ^:private time-formatter
+(def ^:private ^{:arglists '([timezone-id])} time-formatter
   ;; memoize this because the formatters are static. They must be distinct per timezone though.
   (memoize (fn [timezone-id]
              (if timezone-id
@@ -128,7 +128,7 @@
 (defn is-time?
   "Returns true if `V` is a Time object"
   [v]
-  (instance? Time v))
+  (and v (instance? Time v)))
 
 ;;; ## Date Stuff
 

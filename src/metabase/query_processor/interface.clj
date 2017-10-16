@@ -178,8 +178,8 @@
   clojure.lang.Named
   (getName [_] (name field)))
 
-(s/defrecord TimeValue [value :- Time
-                        field :- TimeField
+(s/defrecord TimeValue [value       :- Time
+                        field       :- TimeField
                         timezone-id :- (s/maybe String)])
 
 (def binning-strategies

@@ -170,7 +170,7 @@
   definitions and `UPDATE-ROWS-FN` with the vector of rows in the
   database definition. `TABLE-DEF` is the database
   definition (typically used directly in a `def-database-definition`
-  invocation."
+  invocation)."
   [table-name-to-update update-table-def-fn update-rows-fn table-def]
   (vec
    (for [[table-name table-def rows] table-def

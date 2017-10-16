@@ -19,7 +19,7 @@
   Boolean (unprepare-arg [this _] (if this "TRUE" "FALSE"))
   Number  (unprepare-arg [this _] (str this))
   Date    (unprepare-arg [this {:keys [iso-8601-fn]}] (first (hsql/format (unprepare-date this iso-8601-fn))))
-  Time    (unprepare-arg [this {:keys [iso-8601-fn]}] (first (hsql/format (hx/cast :time (unprepare-date this iso-8601-fn))))))
+  Time    (unprepare-arg [this {:keys [iso-8601-fn]}] (first (hsql/format (hx/->time (unprepare-date this iso-8601-fn))))))
 
 (defn unprepare
   "Convert a normal SQL `[statement & prepared-statement-args]` vector into a flat, non-prepared statement."

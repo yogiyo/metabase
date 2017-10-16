@@ -173,7 +173,7 @@
 (defn- prepare-value [{value :value, {:keys [base-type]} :field}]
   (cond
     (not value)                      value
-    (hx/time? value)                 (hx/->time value)
+    (u/is-time? value)               (hx/->time value)
     (isa? base-type :type/UUID)      (UUID/fromString value)
     (isa? base-type :type/IPAddress) (hx/cast :inet value)
     :else                            value))

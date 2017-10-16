@@ -126,7 +126,7 @@
     :year            (hx/year expr)))
 
 (defn- prepare-value [{:keys [value]}]
-  (if (hx/time? value)
+  (if (u/is-time? value)
     (hx/->time value)
     value))
 

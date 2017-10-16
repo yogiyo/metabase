@@ -13,8 +13,7 @@
              [driver :as driver]
              [util :as u]]
             [metabase.driver.generic-sql :as sql]
-            [metabase.util.honeysql-extensions :as hx]
-            [clj-time.core :as t]))
+            [metabase.util.honeysql-extensions :as hx]))
 
 (defn- connection-details->spec
   "Create a database specification for a SQLite3 database. DETAILS should include a
@@ -144,7 +143,7 @@
 ;; SQLite doesn't support `TRUE`/`FALSE`; it uses `1`/`0`, respectively; convert these booleans to numbers.
 (defn- prepare-value [{value :value}]
   (cond
-    (hx/time? value)
+    (u/is-time? value)
     (->> value
          tcoerce/to-date-time
          (tformat/unparse (tformat/formatters :hour-minute-second-ms))

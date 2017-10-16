@@ -153,6 +153,11 @@
        tcoerce/to-long
        Time.))
 
+(defn- unparse-bigquery-time [coercible-to-dt]
+  (->> coercible-to-dt
+       tcoerce/to-date-time
+       (tformat/unparse bigquery-time-format)))
+
 (def ^:private type->parser
   "Functions that should be used to coerce string values in responses to the appropriate type for their column."
   {"BOOLEAN"   #(Boolean/parseBoolean %)
@@ -297,7 +302,6 @@
   (let [sql     (str "-- " (qputil/query->remark outer-query) "\n" (if (seq params)
                                                                      (unprepare/unprepare (cons sql params))
                                                                      sql))
-        _ (println "running this on bigquery" sql)
         results (process-native* database sql)
         results (if mbql?
                   (post-process-mbql dataset-id table-name results)
@@ -313,8 +317,7 @@
   nil           (prepare-value [_] nil)
   DateTimeValue (prepare-value [{:keys [value]}] (prepare-value value))
   TimeValue     (prepare-value [{:keys [value]}] (->> value
-                                                      clj-time.coerce/to-date-time
-                                                      (tformat/unparse bigquery-time-format)
+                                                      unparse-bigquery-time
                                                       prepare-value
                                                       hx/->time))
   Value         (prepare-value [{:keys [value]}] (prepare-value value))

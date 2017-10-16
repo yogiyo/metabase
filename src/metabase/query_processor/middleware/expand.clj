@@ -12,7 +12,7 @@
             [schema.core :as s])
   (:import [metabase.query_processor.interface AgFieldRef BetweenFilter ComparisonFilter CompoundFilter DateTimeValue
             DateTimeField Expression ExpressionRef FieldLiteral FieldPlaceholder RelativeDatetime
-            RelativeDateTimeValue StringFilter TimeField Value ValuePlaceholder]))
+            RelativeDateTimeValue StringFilter Value ValuePlaceholder]))
 
 ;;; +----------------------------------------------------------------------------------------------------------------+
 ;;; |                                                CLAUSE HANDLERS                                                 |

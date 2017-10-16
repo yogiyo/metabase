@@ -1,14 +1,12 @@
 (ns metabase.query-processor.middleware.format-rows-test
-  (:require [metabase.query-processor.middleware.format-rows :refer :all]
-            [expectations :refer :all]
+  (:require [metabase.query-processor-test :as qpt]
+            [metabase.query-processor.middleware.expand :as ql]
             [metabase.test
              [data :as data]
              [util :as tu]]
-            [metabase.test.data.dataset-definitions :as defs]
-            [metabase.driver.generic-sql :as sql]
-            [metabase.query-processor.middleware.expand :as ql]
-            [metabase.query-processor-test :as qpt]
-            [metabase.test.data.datasets :refer [*engine*]]))
+            [metabase.test.data
+             [dataset-definitions :as defs]
+             [datasets :refer [*engine*]]]))
 
 (qpt/expect-with-non-timeseries-dbs-except #{:oracle :mongo :redshift :presto}
   (if (= :sqlite *engine*)

@@ -53,10 +53,20 @@
 (def ^:private presto-date-time-formatter
   (u/->DateTimeFormatter "yyyy-MM-dd HH:mm:ss.SSS"))
 
+(defn- parse-presto-time
+  "Parsing time from presto using a specific formatter rather than the
+  utility functions as this will be called on each row returned, so
+  performance is important"
+  [time-str]
+  (->> time-str
+       (u/parse-date :hour-minute-second-ms)
+       tcoerce/to-long
+       Time.))
+
 (defn- field-type->parser [report-timezone field-type]
   (condp re-matches field-type
     #"decimal.*"                bigdec
-    #"time"                     #(java.sql.Time. (clj-time.coerce/to-long (u/parse-date :hour-minute-second-ms %)))
+    #"time"                     parse-presto-time
     #"time with time zone"      parse-time-with-tz
     #"timestamp"                (partial u/parse-date
                                          (if-let [report-tz (and report-timezone
@@ -175,7 +185,7 @@
   ([t]
    (time->str t nil))
   ([t tz-id]
-   (let [tz (clj-time.core/time-zone-for-id tz-id)]
+   (let [tz (time/time-zone-for-id tz-id)]
      (tformat/unparse (tformat/with-zone time-format tz) (tcoerce/to-date-time t)))))
 
 (defprotocol ^:private IPrepareValue
@@ -188,12 +198,13 @@
   Value         (prepare-value [{:keys [value]}] (prepare-value value))
   String        (prepare-value [this] (hx/literal (str/replace this "'" "''")))
   Boolean       (prepare-value [this] (hsql/raw (if this "TRUE" "FALSE")))
-  Date          (prepare-value [this] (do (println "This is a date? " (class this)) (hsql/call :from_iso8601_timestamp (hx/literal (u/date->iso-8601 this)))))
+  Date          (prepare-value [this] (hsql/call :from_iso8601_timestamp (hx/literal (u/date->iso-8601 this))))
   Number        (prepare-value [this] this)
   Object        (prepare-value [this] (throw (Exception. (format "Don't know how to prepare value %s %s" (class this) this)))))
 
 (defn- execute-query [{:keys [database settings], {sql :query, params :params} :native, :as outer-query}]
-  (let [sql                    (str "-- " (qputil/query->remark outer-query) "\n"
+  (let [sql                    (str "-- "
+                                    (qputil/query->remark outer-query) "\n"
                                     (unprepare/unprepare (cons sql params) :quote-escape "'", :iso-8601-fn :from_iso8601_timestamp))
         details                (merge (:details database) settings)
         {:keys [columns rows]} (execute-presto-query! details sql)
