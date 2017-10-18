@@ -47,6 +47,7 @@
   {:creator_id    (user->id :rasta)
    :creator       (user-details :rasta)
    :name          "Lodi Dodi"
+   :is_alert      false
    :cards         [{:name        "Test Card"
                     :description nil
                     :display     :table}]
@@ -54,6 +55,8 @@
                     :schedule_type  :daily
                     :schedule_hour  15
                     :schedule_frame nil
+                    :description    nil
+                    :condition      nil
                     :channel_type   :email
                     :details        {:other "stuff"}
                     :schedule_day   nil
@@ -105,6 +108,8 @@
    :schedule_hour 4
    :schedule_day  nil
    :schedule_frame nil
+   :description    nil
+   :condition      nil
    :recipients    [{:email "foo@bar.com"}
                    (dissoc (user-details :rasta) :is_superuser :is_qbnewb)]}
   (tt/with-temp Pulse [{:keys [id]}]
@@ -123,13 +128,16 @@
 (expect
   {:creator_id    (user->id :rasta)
    :name          "Booyah!"
+   :is_alert      false
    :channels      [{:enabled        true
                     :schedule_type  :daily
                     :schedule_hour  18
                     :schedule_frame nil
                     :channel_type   :email
                     :recipients     [{:email "foo@bar.com"}]
-                    :schedule_day   nil}]
+                    :schedule_day   nil
+                    :description    nil
+                    :condition      nil}]
    :cards         [{:name        "Test Card"
                     :description nil
                     :display     :table}]
@@ -155,6 +163,7 @@
 (expect
   {:creator_id    (user->id :rasta)
    :name          "We like to party"
+   :is_alert      false
    :cards         [{:name        "Bar Card"
                     :description nil
                     :display     :bar}
@@ -165,6 +174,8 @@
                     :schedule_type  :daily
                     :schedule_hour  18
                     :schedule_frame nil
+                    :description    nil
+                    :condition      nil
                     :channel_type   :email
                     :schedule_day   nil
                     :recipients     [{:email "foo@bar.com"}

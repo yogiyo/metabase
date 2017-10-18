@@ -3940,3 +3940,33 @@ databaseChangeLog:
               - column:
                   name: ended_at
                   type: DATETIME
+  - changeSet:
+      id: 69
+      author: senior
+      comment: 'Added 0.27.0'
+      changes:
+        - addColumn:
+            tableName: pulse_channel
+            columns:
+              - column:
+                  name: condition
+                  type: varchar(254)
+                  remarks: 'Condition (i.e. "rows" or "goal") used as a guard for alerts'
+                  constraints:
+                    nullable: true
+              - column:
+                  name: description
+                  type: varchar(254)
+                  remarks: 'Text included in alert notifications'
+                  constraints:
+                    nullable: true
+        - addColumn:
+            tableName: pulse
+            columns:
+              - column:
+                  name: is_alert
+                  type: boolean
+                  defaultValueBoolean: false
+                  remarks: 'true if the pulse is used as an alert'
+                  constraints:
+                    nullable: false

@@ -121,15 +121,17 @@
 
 ;; create-pulse-channel!
 (expect
-  {:enabled       true
-   :channel_type  :email
-   :schedule_type :daily
-   :schedule_hour 18
-   :schedule_day  nil
+  {:enabled        true
+   :channel_type   :email
+   :schedule_type  :daily
+   :schedule_hour  18
+   :schedule_day   nil
    :schedule_frame nil
-   :recipients    [(user-details :crowberto)
-                   {:email "foo@bar.com"}
-                   (user-details :rasta)]}
+   :description    nil
+   :condition      nil
+   :recipients     [(user-details :crowberto)
+                    {:email "foo@bar.com"}
+                    (user-details :rasta)]}
   (tt/with-temp Pulse [{:keys [id]}]
     (create-channel-then-select! {:pulse_id      id
                                   :enabled       true
@@ -145,6 +147,8 @@
    :schedule_hour nil
    :schedule_day  nil
    :schedule_frame nil
+   :description    nil
+   :condition      nil
    :recipients    []
    :details       {:something "random"}}
   (tt/with-temp Pulse [{:keys [id]}]
@@ -159,13 +163,15 @@
 ;; update-pulse-channel!
 ;; simple starting case where we modify the schedule hour and add a recipient
 (expect
-  {:enabled       true
-   :channel_type  :email
-   :schedule_type :daily
-   :schedule_hour 18
-   :schedule_day  nil
+  {:enabled        true
+   :channel_type   :email
+   :schedule_type  :daily
+   :schedule_hour  18
+   :schedule_day   nil
    :schedule_frame nil
-   :recipients    [{:email "foo@bar.com"}]}
+   :description    nil
+   :condition      nil
+   :recipients     [{:email "foo@bar.com"}]}
   (tt/with-temp* [Pulse        [{pulse-id :id}]
                   PulseChannel [{channel-id :id, :as channel} {:pulse_id pulse-id}]]
     (update-channel-then-select! {:id            channel-id
@@ -183,6 +189,8 @@
    :schedule_hour 8
    :schedule_day  nil
    :schedule_frame :mid
+   :description    nil
+   :condition      nil
    :recipients    [{:email "foo@bar.com"} (user-details :rasta)]}
   (tt/with-temp* [Pulse        [{pulse-id :id}]
                   PulseChannel [{channel-id :id :as channel} {:pulse_id pulse-id}]]
@@ -203,6 +211,8 @@
    :schedule_hour 8
    :schedule_day  "mon"
    :schedule_frame nil
+   :description    nil
+   :condition      nil
    :recipients    [{:email "foo@bar.com"} (user-details :rasta)]}
   (tt/with-temp* [Pulse        [{pulse-id :id}]
                   PulseChannel [{channel-id :id} {:pulse_id pulse-id}]]
@@ -222,6 +232,8 @@
    :schedule_hour nil
    :schedule_day  nil
    :schedule_frame nil
+   :description    nil
+   :condition      nil
    :recipients    [(user-details :crowberto)]}
   (tt/with-temp* [Pulse        [{pulse-id :id}]
                   PulseChannel [{channel-id :id} {:pulse_id pulse-id, :details {:emails ["foo@bar.com"]}}]]
@@ -242,6 +254,8 @@
    :schedule_hour 12
    :schedule_day  nil
    :schedule_frame nil
+   :description    nil
+   :condition      nil
    :recipients    [{:email "foo@bar.com"} {:email "blah@bar.com"}]
    :details       {:channel "#metabaserocks"}}
   (tt/with-temp* [Pulse        [{pulse-id :id}]

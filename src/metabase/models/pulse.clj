@@ -89,7 +89,9 @@
   "Fetch a single `Pulse` by its ID value."
   [id]
   {:pre [(integer? id)]}
-  (-> (Pulse id)
+  (-> (db/select-one Pulse {:where [:and
+                                    [:= :id id]
+                                    [:= :is_alert false]]})
       (hydrate :creator :cards [:channels :recipients])
       (m/dissoc-in [:details :emails])))
 
@@ -97,7 +99,8 @@
 (defn retrieve-pulses
   "Fetch all `Pulses`."
   []
-  (for [pulse (-> (db/select Pulse, {:order-by [[:name :asc]]})
+  (for [pulse (-> (db/select Pulse, {:where [:= :is_alert false]
+                                     :order-by [[:name :asc]]} )
                   (hydrate :creator :cards [:channels :recipients]))]
     (m/dissoc-in pulse [:details :emails])))
 
@@ -184,7 +187,8 @@
     (let [{:keys [id] :as pulse} (db/insert! Pulse
                                    :creator_id creator-id
                                    :name pulse-name
-                                   :skip_if_empty skip-if-empty?)]
+                                   :skip_if_empty skip-if-empty?
+                                   :is_alert false)]
       ;; add card-ids to the Pulse
       (update-pulse-cards! pulse card-ids)
       ;; add channels to the Pulse
