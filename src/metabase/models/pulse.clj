@@ -85,24 +85,54 @@
 
 ;;; ------------------------------------------------------------ Pulse Fetching Helper Fns ------------------------------------------------------------
 
+(defn- remove-alert-fields [pulse]
+  (dissoc pulse :alert_condition :alert_description :alert_above_goal :alert_first_only))
+
 (defn retrieve-pulse
   "Fetch a single `Pulse` by its ID value."
   [id]
   {:pre [(integer? id)]}
   (-> (db/select-one Pulse {:where [:and
                                     [:= :id id]
-                                    [:= :is_alert false]]})
+                                    [:= :alert_condition nil]]})
       (hydrate :creator :cards [:channels :recipients])
+      remove-alert-fields
+      (m/dissoc-in [:details :emails])))
+
+(defn retrieve-pulse-or-alert
+  "Fetch a single `Pulse` by its ID value."
+  [id]
+  {:pre [(integer? id)]}
+  (-> (db/select-one Pulse {:where [:= :id id]})
+      (hydrate :creator :cards [:channels :recipients])
+      (m/dissoc-in [:details :emails])))
+
+(defn pulse->alert [pulse]
+  (-> pulse
+      (assoc :card (first (:cards pulse)))
+      (dissoc :cards)))
+
+(defn retrieve-alert
+  "Fetch a single `Pulse` by its ID value."
+  [id]
+  {:pre [(integer? id)]}
+  (-> (db/select-one Pulse {:where [:and
+                                    [:= :id id]
+                                    [:not= :alert_condition nil]]})
+      (hydrate :creator :cards [:channels :recipients])
+      pulse->alert
       (m/dissoc-in [:details :emails])))
 
 
 (defn retrieve-pulses
   "Fetch all `Pulses`."
   []
-  (for [pulse (-> (db/select Pulse, {:where [:= :is_alert false]
+  (for [pulse (-> (db/select Pulse, {:where [:= :alert_condition nil]
                                      :order-by [[:name :asc]]} )
                   (hydrate :creator :cards [:channels :recipients]))]
-    (m/dissoc-in pulse [:details :emails])))
+    (-> pulse
+        remove-alert-fields
+        (m/dissoc-in [:details :emails]))))
 
 
 ;;; ------------------------------------------------------------ Other Persistence Functions ------------------------------------------------------------
@@ -169,6 +199,18 @@
     (doseq [[channel-type] pulse-channel/channel-types]
       (handle-channel channel-type))))
 
+(defn- create-notification [pulse card-ids channels alert? ]
+  (db/transaction
+    (let [{:keys [id] :as pulse} (db/insert! Pulse pulse)]
+      ;; add card-ids to the Pulse
+      (update-pulse-cards! pulse card-ids)
+      ;; add channels to the Pulse
+      (update-pulse-channels! pulse channels)
+      ;; return the full Pulse (and record our create event)
+      (events/publish-event! :pulse-create (if alert?
+                                             (retrieve-alert id)
+                                             (retrieve-pulse id))))))
+
 
 (defn create-pulse!
   "Create a new `Pulse` by inserting it into the database along with all associated pieces of data such as:
@@ -183,19 +225,26 @@
          (every? integer? card-ids)
          (coll? channels)
          (every? map? channels)]}
-  (db/transaction
-    (let [{:keys [id] :as pulse} (db/insert! Pulse
-                                   :creator_id creator-id
-                                   :name pulse-name
-                                   :skip_if_empty skip-if-empty?
-                                   :is_alert false)]
-      ;; add card-ids to the Pulse
-      (update-pulse-cards! pulse card-ids)
-      ;; add channels to the Pulse
-      (update-pulse-channels! pulse channels)
-      ;; return the full Pulse (and record our create event)
-      (events/publish-event! :pulse-create (retrieve-pulse id)))))
+  (create-notification {:creator_id    creator-id
+                        :name          pulse-name
+                        :skip_if_empty skip-if-empty?}
+                       card-ids channels false))
 
+(defn create-alert!
+  [alert creator-id card-id channels]
+  (-> alert
+      (assoc :skip_if_empty true :creator_id creator-id)
+      (create-notification [card-id] channels true)))
+
+(defn update-notification! [{:keys [id name cards channels skip-if-empty?] :as pulse}]
+  (db/transaction
+    ;; update the pulse itself
+    (db/update! Pulse id, :name name, :skip_if_empty skip-if-empty?)
+    ;; update cards (only if they changed). Order for the cards is important which is why we're not using select-field
+    (when (not= cards (map :card_id (db/select [PulseCard :card_id], :pulse_id id, {:order-by [[:position :asc]]})))
+      (update-pulse-cards! pulse cards))
+    ;; update channels
+    (update-pulse-channels! pulse channels)))
 
 (defn update-pulse!
   "Update an existing `Pulse`, including all associated data such as: `PulseCards`, `PulseChannels`, and `PulseChannelRecipients`.
@@ -209,14 +258,16 @@
          (every? integer? cards)
          (coll? channels)
          (every? map? channels)]}
-  (db/transaction
-    ;; update the pulse itself
-    (db/update! Pulse id, :name name, :skip_if_empty skip-if-empty?)
-    ;; update cards (only if they changed). Order for the cards is important which is why we're not using select-field
-    (when (not= cards (map :card_id (db/select [PulseCard :card_id], :pulse_id id, {:order-by [[:position :asc]]})))
-      (update-pulse-cards! pulse cards))
-    ;; update channels
-    (update-pulse-channels! pulse channels)
-    ;; fetch the fully updated pulse and return it (and fire off an event)
-    (->> (retrieve-pulse id)
-         (events/publish-event! :pulse-update))))
+  (update-notification! pulse)
+  ;; fetch the fully updated pulse and return it (and fire off an event)
+  (->> (retrieve-pulse id)
+       (events/publish-event! :pulse-update)))
+
+(defn update-alert! [{:keys [id card] :as alert}]
+  (-> alert
+      (assoc :skip-if-empty? true :cards [card])
+      (dissoc :card)
+      update-notification!)
+  ;; fetch the fully updated pulse and return it (and fire off an event)
+  (->> (retrieve-alert id)
+       (events/publish-event! :pulse-update)))

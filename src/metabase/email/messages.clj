@@ -226,3 +226,23 @@
                        (vec (cons :div (for [result results]
                                          (render/render-pulse-section timezone result)))))]
     (render-message-body "metabase/email/pulse" (pulse-context body pulse) (seq @images))))
+
+(defn- alert-context [body pulse]
+  (merge {:emailType    "alert"
+          :pulse        (html body)
+          :pulseName    (:name pulse)
+          :alertDescription (:alert_description pulse)
+          :sectionStyle render/section-style
+          :colorGrey4   render/color-gray-4
+          :logoFooter   true}
+         (random-quote-context)))
+
+(defn render-alert-email
+  "Take a pulse object and list of results, returns an array of attachment objects for an email"
+  [timezone pulse results]
+  (let [images       (atom {})
+        body         (binding [render/*include-title* true
+                               render/*render-img-fn* (partial render-image images)]
+                       (vec (cons :div (for [result results]
+                                         (render/render-pulse-section timezone result)))))]
+    (render-message-body "metabase/email/alert" (alert-context body pulse (seq @images)))))

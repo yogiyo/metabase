@@ -127,8 +127,6 @@
    :schedule_hour  18
    :schedule_day   nil
    :schedule_frame nil
-   :description    nil
-   :condition      nil
    :recipients     [(user-details :crowberto)
                     {:email "foo@bar.com"}
                     (user-details :rasta)]}
@@ -147,8 +145,6 @@
    :schedule_hour nil
    :schedule_day  nil
    :schedule_frame nil
-   :description    nil
-   :condition      nil
    :recipients    []
    :details       {:something "random"}}
   (tt/with-temp Pulse [{:keys [id]}]
@@ -169,8 +165,6 @@
    :schedule_hour  18
    :schedule_day   nil
    :schedule_frame nil
-   :description    nil
-   :condition      nil
    :recipients     [{:email "foo@bar.com"}]}
   (tt/with-temp* [Pulse        [{pulse-id :id}]
                   PulseChannel [{channel-id :id, :as channel} {:pulse_id pulse-id}]]
@@ -189,8 +183,6 @@
    :schedule_hour 8
    :schedule_day  nil
    :schedule_frame :mid
-   :description    nil
-   :condition      nil
    :recipients    [{:email "foo@bar.com"} (user-details :rasta)]}
   (tt/with-temp* [Pulse        [{pulse-id :id}]
                   PulseChannel [{channel-id :id :as channel} {:pulse_id pulse-id}]]
@@ -211,8 +203,6 @@
    :schedule_hour 8
    :schedule_day  "mon"
    :schedule_frame nil
-   :description    nil
-   :condition      nil
    :recipients    [{:email "foo@bar.com"} (user-details :rasta)]}
   (tt/with-temp* [Pulse        [{pulse-id :id}]
                   PulseChannel [{channel-id :id} {:pulse_id pulse-id}]]
@@ -232,8 +222,6 @@
    :schedule_hour nil
    :schedule_day  nil
    :schedule_frame nil
-   :description    nil
-   :condition      nil
    :recipients    [(user-details :crowberto)]}
   (tt/with-temp* [Pulse        [{pulse-id :id}]
                   PulseChannel [{channel-id :id} {:pulse_id pulse-id, :details {:emails ["foo@bar.com"]}}]]
@@ -254,8 +242,6 @@
    :schedule_hour 12
    :schedule_day  nil
    :schedule_frame nil
-   :description    nil
-   :condition      nil
    :recipients    [{:email "foo@bar.com"} {:email "blah@bar.com"}]
    :details       {:channel "#metabaserocks"}}
   (tt/with-temp* [Pulse        [{pulse-id :id}]

@@ -8,6 +8,7 @@
              [card :refer [Card]]
              [pulse :as pulse :refer [Pulse]]]
             [metabase.test.data.users :refer :all]
+            [metabase.test.mock.util :refer [pulse-channel-defaults]]
             [metabase.test.util :as tu]
             [toucan.db :as db]
             [toucan.util.test :as tt]))
@@ -26,16 +27,15 @@
 
 (defn- pulse-details [pulse]
   (tu/match-$ pulse
-    {:id            $
-     :name          $
-     :created_at    $
-     :updated_at    $
-     :creator_id    $
-     :is_alert      false
-     :creator       (user-details (db/select-one 'User :id (:creator_id pulse)))
-     :cards         (map pulse-card-details (:cards pulse))
-     :channels      (map pulse-channel-details (:channels pulse))
-     :skip_if_empty $}))
+    {:id                $
+     :name              $
+     :created_at        $
+     :updated_at        $
+     :creator_id        $
+     :creator           (user-details (db/select-one 'User :id (:creator_id pulse)))
+     :cards             (map pulse-card-details (:cards pulse))
+     :channels          (map pulse-channel-details (:channels pulse))
+     :skip_if_empty     $}))
 
 (defn- pulse-response [{:keys [created_at updated_at], :as pulse}]
   (-> pulse
@@ -93,17 +93,12 @@
    :creator       (user-details (fetch-user :rasta))
    :created_at    true
    :updated_at    true
-   :is_alert      false
    :cards         (mapv pulse-card-details [card1 card2])
-   :channels      [{:enabled        true
-                    :channel_type   "email"
-                    :schedule_type  "daily"
-                    :schedule_hour  12
-                    :schedule_day   nil
-                    :schedule_frame nil
-                    :recipients     []
-                    :condition      nil
-                    :description    nil}]
+   :channels      [(merge pulse-channel-defaults
+                          {:channel_type   "email"
+                           :schedule_type  "daily"
+                           :schedule_hour  12
+                           :recipients     []})]
    :skip_if_empty false}
   (-> (pulse-response ((user->client :rasta) :post 200 "pulse" {:name          "A Pulse"
                                                                 :cards         [{:id (:id card1)} {:id (:id card2)}]
@@ -154,18 +149,12 @@
    :creator       (user-details (fetch-user :rasta))
    :created_at    true
    :updated_at    true
-   :is_alert      false
    :cards         [(pulse-card-details card)]
-   :channels      [{:enabled       true
-                    :channel_type  "slack"
-                    :schedule_type "hourly"
-                    :schedule_hour nil
-                    :schedule_day  nil
-                    :schedule_frame nil
-                    :details       {:channels "#general"}
-                    :recipients    []
-                    :condition     nil
-                    :description   nil}]
+   :channels      [(merge pulse-channel-defaults
+                          {:channel_type  "slack"
+                           :schedule_type "hourly"
+                           :details       {:channels "#general"}
+                           :recipients    []})]
    :skip_if_empty false}
   (-> (pulse-response ((user->client :rasta) :put 200 (format "pulse/%d" (:id pulse)) {:name          "Updated Pulse"
                                                                                        :cards         [{:id (:id card)}]
@@ -201,7 +190,8 @@
 (tt/expect-with-temp [Pulse [pulse1 {:name     "ABCDEF"}]
                       Pulse [pulse2 {:name     "GHIJKL"}]
                       Pulse [pulse3 {:name     "AAAAAA"
-                                     :is_alert true}]]
+                                     :alert_condition "rows"
+                                     :alert_description "foo"}]]
   [(assoc (pulse-details pulse1) :read_only false)
    (assoc (pulse-details pulse2) :read_only false)]
   ((user->client :rasta) :get 200 "pulse"))
@@ -212,6 +202,7 @@
   ((user->client :rasta) :get 200 (str "pulse/" (:id pulse))))
 
 ;; ## GET /api/pulse/:id on an alert should 404
-(tt/expect-with-temp [Pulse [pulse {:is_alert true}]]
+(tt/expect-with-temp [Pulse [{pulse-id :id} {:alert_condition   "rows"
+                                             :alert_description "foo"}]]
   "Not found."
-  ((user->client :rasta) :get 404 (str "pulse/" (:id pulse))))
+  ((user->client :rasta) :get 404 (str "pulse/" pulse-id)))

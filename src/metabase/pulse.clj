@@ -63,6 +63,27 @@
     :message-type message-type
     :message      message))
 
+(defn- send-email-alert!
+  "Send a `Pulse` email given a list of card results to render and a list of recipients to send to."
+  [{:keys [id name] :as pulse} results recipients]
+  (log/debug (format "Sending Alert (%d: %s) via Channel :email" id name))
+  (let [email-subject    (str "Alert: " name)
+        email-recipients (filterv u/is-email? (map :email recipients))
+        timezone         (-> results first :card defaulted-timezone)]
+    (email/send-message!
+      :subject      email-subject
+      :recipients   email-recipients
+      :message-type :attachments
+      :message      (messages/render-alert-email timezone pulse results))))
+
+(defn- alert? [pulse]
+  (boolean (:alert_condition pulse)))
+
+(defn- send-email-notification! [pulse results recipients]
+  (if (alert? pulse)
+    (send-email-alert! pulse results recipients)
+    (send-email-pulse! pulse results recipients)))
+
 (defn create-slack-attachment-data
   "Returns a seq of slack attachment data structures, used in `create-and-upload-slack-attachments!`"
   [card-results]
@@ -112,6 +133,35 @@
   [results]
   (every? is-card-empty? results))
 
+(defn- send-notifications! [notifications]
+  (doseq [notification notifications]
+    (if (contains? notification :channel-id)
+      (send-slack-pulse! notification)
+      (send-email-pulse! notification))))
+
+(defn- rows-alert? [pulse]
+  (= "rows" (:alert_condition pulse)))
+
+(defn- goal-alert? [pulse]
+  (= "goal" (:alert_condition pulse)))
+
+(defn- goal-met? [pulse results]
+  false)
+
+(defn- should-send-notification?
+  [{:keys [alert_condition] :as pulse} results]
+  (printf "alert? %s\n are-all-cards-empty? %s rows-alert? %s" )
+  (cond
+    (and (not (alert? pulse))
+         (:skip_if_empty pulse))
+    (not (are-all-cards-empty? results))
+
+    (rows-alert? pulse)
+    (not (are-all-cards-empty? results))
+
+    (goal-alert? pulse)
+    (goal-met? pulse results)))
+
 (defn- pulse->notifications [{:keys [cards channel-ids], :as pulse}]
   (let [results     (for [card  cards
                           :let  [result (execute-card (:id card), :pulse-id (:id pulse))] ; Pulse ID may be `nil` if the Pulse isn't saved yet
@@ -125,12 +175,6 @@
           (case (keyword channel_type)
             :email (create-email-notification pulse results recipients)
             :slack (create-slack-notification pulse results (:channel details)))))))
-
-(defn- send-notifications! [notifications]
-  (doseq [notification notifications]
-    (if (contains? notification :channel-id)
-      (send-slack-pulse! notification)
-      (send-email-pulse! notification))))
 
 (defn send-pulse!
   "Execute and Send a `Pulse`, optionally specifying the specific `PulseChannels`.  This includes running each

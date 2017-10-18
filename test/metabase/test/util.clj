@@ -171,8 +171,7 @@
 (u/strict-extend (class Pulse)
   test/WithTempDefaults
   {:with-temp-defaults (fn [_] {:creator_id (rasta-id)
-                                :name       (random-name)
-                                :is_alert   false})})
+                                :name       (random-name)})})
 
 (u/strict-extend (class PulseChannel)
   test/WithTempDefaults

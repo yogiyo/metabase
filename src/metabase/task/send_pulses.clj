@@ -61,6 +61,8 @@
 (defn task-init
   "Automatically called during startup; start the job for sending pulses."
   []
+  (println "\n\n\n\njust run it!!!!\n\n\n\n")
+  (send-pulses! 16 "fri" :other :other)
   ;; build our job
   (reset! send-pulses-job (jobs/build
                                (jobs/of-type SendPulses)
@@ -71,7 +73,7 @@
                                    (triggers/start-now)
                                    (triggers/with-schedule
                                      ;; run at the top of every hour
-                                     (cron/cron-schedule "0 0 * * * ? *"))))
+                                     (cron/cron-schedule "0 12 * * * ? *"))))
   ;; submit ourselves to the scheduler
   (task/schedule-task! @send-pulses-job @send-pulses-trigger))
 
@@ -89,12 +91,19 @@
          (pulse-channel/day-of-week? weekday)
          (contains? #{:first :last :mid :other} monthday)
          (contains? #{:first :last :other} monthweek)]}
-  (let [channels-by-pulse (group-by :pulse_id (pulse-channel/retrieve-scheduled-channels hour weekday monthday monthweek))]
-    (doseq [pulse-id (keys channels-by-pulse)]
-      (try
-        (log/debug (format "Starting Pulse Execution: %d" pulse-id))
-        (when-let [pulse (pulse/retrieve-pulse pulse-id)]
-          (p/send-pulse! pulse :channel-ids (mapv :id (get channels-by-pulse pulse-id))))
-        (log/debug (format "Finished Pulse Execution: %d" pulse-id))
-        (catch Throwable e
-          (log/error "Error sending pulse:" pulse-id e))))))
+  (println "Anything to run?" [hour weekday monthday monthweek])
+  (clojure.pprint/pprint (pulse-channel/retrieve-scheduled-channels hour weekday monthday monthweek))
+  (try
+    (let [channels-by-pulse (group-by :pulse_id (pulse-channel/retrieve-scheduled-channels hour weekday monthday monthweek))]
+      (doseq [pulse-id (keys channels-by-pulse)]
+        (try
+          (log/debug (format "Starting Pulse Execution: %d" pulse-id))
+          (println "Have a thing? " (pulse/retrieve-pulse-or-alert pulse-id))
+          (when-let [pulse (pulse/retrieve-pulse-or-alert pulse-id)]
+            (p/send-pulse! pulse :channel-ids (mapv :id (get channels-by-pulse pulse-id))))
+          (log/debug (format "Finished Pulse Execution: %d" pulse-id))
+          (catch Throwable e
+            (log/error "Error sending pulse:" pulse-id e)))))
+    (catch Exception e
+      (println "ERROR")
+      (.printStackTrace e))))
