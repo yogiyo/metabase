@@ -209,7 +209,7 @@ export const getRoutes = (store) =>
                 {/* QUESTIONS */}
                 <Route path="/questions" title={t`Questions`}>
                     <IndexRoute component={QuestionIndex} />
-                    <Route path="search" title={({ location: { query: { q } }}) => {t`Search`} + ": " + q} component={SearchResults} />
+                    <Route path="search" title={({ location: { query: { q } }}) => t`Search` + ": " + q} component={SearchResults} />
                     <Route path="archive" title={t`Archive`} component={Archive} />
                     <Route path="collections/:collectionSlug" component={CollectionPage} />
                 </Route>
