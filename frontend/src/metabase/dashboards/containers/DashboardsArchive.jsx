@@ -69,7 +69,7 @@ export class Dashboards extends Component {
 
         const headerWithBackContainer =
             <div className="flex align-center pt4 pb1">
-                <HeaderWithBack name=t`Archive`/>
+                <HeaderWithBack name={t`Archive`}/>
             </div>
 
         return (

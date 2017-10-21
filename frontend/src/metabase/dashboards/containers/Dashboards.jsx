@@ -151,20 +151,20 @@ export class Dashboards extends Component {
             >
                 { modalOpen ? this.renderCreateDashboardModal() : null }
                 <div className="flex align-center pt4 pb1">
-                    <TitleAndDescription title=t`Dashboards`/>
+                    <TitleAndDescription title={t`Dashboards`}/>
 
                     <div className="flex-align-right cursor-pointer text-grey-5">
                         <Link to="/dashboards/archive">
                             <Icon name="viewArchive"
                                   className="mr2 text-brand-hover"
-                                  tooltip=t`View the archive`
+                                  tooltip={t`View the archive`}
                                   size={20}/>
                         </Link>
 
                         {!noDashboardsCreated &&
                         <Icon name="add"
                               className="text-brand-hover"
-                              tooltip=`Add new dashboard`
+                              tooltip={t`Add new dashboard`}
                               size={20}
                               onClick={this.showCreateDashboard}/>
                         }
