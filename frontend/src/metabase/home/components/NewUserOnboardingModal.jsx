@@ -95,7 +95,7 @@ export default class NewUserOnboardingModal extends Component {
                             className="link flex-align-right text-bold absolute right"
                             onClick={() => (this.nextStep())}
                         >
-                            { step === 3 ? 'Let\'s go' : 'Next' }
+                            { step === 3 ? t`Let\'s go` : t`Next` }
                         </a>
                     </div>
                 </div>
