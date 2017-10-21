@@ -9,6 +9,7 @@ import { addUndo } from "metabase/redux/undo";
 import React from "react";
 import { push } from "react-router-redux";
 import moment from 'moment';
+import { t } from 'c-3po'
 
 import type { Dashboard } from "metabase/meta/types/Dashboard";
 
@@ -123,7 +124,7 @@ function createUndo(type, action) {
         type: type,
         count: 1,
         message: (undo) => // eslint-disable-line react/display-name
-                <div> { "Dashboard was " + type + "."} </div>,
+                <div> { t`Dashboard was ` + type + "."} </div>,
         actions: [action]
     };
 }
