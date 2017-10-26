@@ -113,7 +113,7 @@
       (dissoc :cards)))
 
 (defn retrieve-alert
-  "Fetch a single `Pulse` by its ID value."
+  "Fetch a single `Alert` by its ID value."
   [id]
   {:pre [(integer? id)]}
   (-> (db/select-one Pulse {:where [:and
@@ -123,6 +123,17 @@
       pulse->alert
       (m/dissoc-in [:details :emails])))
 
+(defn retrieve-alerts
+  "Fetch a single `Alert` by its ID value."
+  [id]
+  {:pre [(integer? id)]}
+  (for [pulse (-> (db/select Pulse, {:where [:not= :alert_condition nil]
+                                     :order-by [[:name :asc]]} )
+                  (hydrate :creator :cards [:channels :recipients]))]
+
+    (-> pulse
+        pulse->alert
+        (m/dissoc-in [:details :emails]))))
 
 (defn retrieve-pulses
   "Fetch all `Pulses`."

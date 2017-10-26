@@ -24,14 +24,14 @@
            java.util.TimeZone))
 
 (api/defendpoint GET "/"
-  "Fetch all `Pulses`"
+  "Fetch all `Alert`"
   []
-  (for [pulse (pulse/retrieve-pulses)
-        :let  [can-read?  (mi/can-read? pulse)
-               can-write? (mi/can-write? pulse)]
+  (for [alert (pulse/retrieve-alerts)
+        :let  [can-read?  (mi/can-read? alert)
+               can-write? (mi/can-write? alert)]
         :when (or can-read?
                   can-write?)]
-    (assoc pulse :read_only (not can-write?))))
+    (assoc alert :read_only (not can-write?))))
 
 (defn- check-card-read-permissions [{card-id :id}]
   (assert (integer? card-id))
@@ -50,7 +50,7 @@
   (select-keys request [:name :alert_condition :alert_description :alert_first_only :alert_above_goal]))
 
 (api/defendpoint POST "/"
-  "Create a new `Pulse`."
+  "Create a new `Alert`."
   [:as {{:keys [name alert_condition alert_description card channels alert_first_only alert_above_goal] :as req} :body}]
   {name              su/NonBlankString
    alert_condition   AlertConditions
@@ -60,15 +60,13 @@
    card              su/Map
    channels          (su/non-empty [su/Map])}
   (check-card-read-permissions card)
-  #_(api/check (check-channels channels)
-    [400 "All channels should have a description and a valid condition"])
   (api/check-500
    (-> req
        only-alert-keys
        (pulse/create-alert! api/*current-user-id* (u/get-id card) channels))))
 
 (api/defendpoint PUT "/:id"
-  "Update a `Pulse` with ID."
+  "Update a `Alert` with ID."
   [id :as {{:keys [name alert_condition alert_description card channels alert_first_only alert_above_goal card channels] :as req} :body}]
   {name              su/NonBlankString
    alert_condition   AlertConditions
@@ -82,7 +80,6 @@
   (-> req
       only-alert-keys
       (assoc :id id :card (u/get-id card) :channels channels)
-      pulse/update-alert!)
-  #_(pulse/retrieve-alert id))
+      pulse/update-alert!))
 
 (api/define-routes)
