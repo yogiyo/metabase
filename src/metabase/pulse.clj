@@ -155,8 +155,12 @@
 (defn- goal-alert? [pulse]
   (= "goal" (:alert_condition pulse)))
 
-(defn- goal-met? [pulse results]
-  false)
+(defn- goal-met? [{:keys [alert_above_goal] :as pulse} results]
+  (let [goal-val (get-in (first results) [:card :visualization_settings :graph.goal_value])
+        goal-comparison (if alert_above_goal < >)]
+    (some (fn [[_ x-val]]
+               (goal-comparison goal-val x-val))
+             (get-in (first results) [:result :data :rows]))))
 
 (defn- should-send-notification?
   [{:keys [alert_condition] :as pulse} results]
@@ -167,7 +171,7 @@
 
     (and (alert? pulse)
          (goal-alert? pulse))
-    (not (goal-met? pulse results))
+    (goal-met? pulse results)
 
     (and (not (alert? pulse))
          (:skip_if_empty pulse))

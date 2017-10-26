@@ -209,7 +209,108 @@
                    PulseChannelRecipient [_             {:user_id (rasta-id)
                                                          :pulse_channel_id pc-id}]]
      (let [[result & no-more-results] (send-pulse! (retrieve-pulse-or-alert pulse-id))]
-       (clojure.pprint/pprint result)
+       [(empty? no-more-results)
+        (select-keys result [:subject :recipients :message-type])
+        (count (:message result))
+        (email-body? (first (:message result)))
+        (attachment? (second (:message result)))]))))
+
+;; Above goal alert with data
+(expect
+  [true
+   {:subject      "Alert: Goal Alert Name"
+    :recipients   [(:email (users/fetch-user :rasta))]
+    :message-type :attachments}
+   2
+   true
+   true]
+  (test-setup
+   (tt/with-temp* [Card                 [{card-id :id}  (merge (checkins-query {:filter   ["between",["field-id" (data/id :checkins :date)],"2014-04-01" "2014-06-01"]
+                                                                                :breakout [["datetime-field" (data/id :checkins :date) "day"]]})
+                                                               {:visualization_settings {:graph.show_goal true :graph.goal_value 5.9}})]
+                   Pulse                [{pulse-id :id} {:name              "Goal Alert Name"
+                                                         :alert_condition   "goal"
+                                                         :alert_description "Alert when above goal"
+                                                         :alert_first_only  false
+                                                         :alert_above_goal  true}]
+                   PulseCard             [_             {:pulse_id pulse-id
+                                                         :card_id  card-id
+                                                         :position 0}]
+                   PulseChannel          [{pc-id :id}   {:pulse_id pulse-id}]
+                   PulseChannelRecipient [_             {:user_id          (rasta-id)
+                                                         :pulse_channel_id pc-id}]]
+     (let [[result & no-more-results] (send-pulse! (retrieve-pulse-or-alert pulse-id))]
+       [(empty? no-more-results)
+        (select-keys result [:subject :recipients :message-type])
+        (count (:message result))
+        (email-body? (first (:message result)))
+        (attachment? (second (:message result)))]))))
+
+;; Above goal alert, with no data above goal
+(expect
+  nil
+  (test-setup
+   (tt/with-temp* [Card                 [{card-id :id}  (merge (checkins-query {:filter   ["between",["field-id" (data/id :checkins :date)],"2014-02-01" "2014-04-01"]
+                                                                                :breakout [["datetime-field" (data/id :checkins :date) "day"]]})
+                                                               {:visualization_settings {:graph.show_goal true :graph.goal_value 5.9}})]
+                   Pulse                [{pulse-id :id} {:name              "Goal Alert Name"
+                                                         :alert_condition   "goal"
+                                                         :alert_description "Alert when above goal"
+                                                         :alert_first_only  false
+                                                         :alert_above_goal  true}]
+                   PulseCard             [_             {:pulse_id pulse-id
+                                                         :card_id  card-id
+                                                         :position 0}]
+                   PulseChannel          [{pc-id :id}   {:pulse_id pulse-id}]
+                   PulseChannelRecipient [_             {:user_id          (rasta-id)
+                                                         :pulse_channel_id pc-id}]]
+     (send-pulse! (retrieve-pulse-or-alert pulse-id)))))
+
+;; Below goal alert with no satisfying data
+(expect
+  nil
+  (test-setup
+   (tt/with-temp* [Card                 [{card-id :id}  (merge (checkins-query {:filter   ["between",["field-id" (data/id :checkins :date)],"2014-02-10" "2014-02-12"]
+                                                                                :breakout [["datetime-field" (data/id :checkins :date) "day"]]})
+                                                               {:visualization_settings {:graph.show_goal true :graph.goal_value 1.1}})]
+                   Pulse                [{pulse-id :id} {:name              "Goal Alert Name"
+                                                         :alert_condition   "goal"
+                                                         :alert_description "Alert when below goal"
+                                                         :alert_first_only  false
+                                                         :alert_above_goal  false}]
+                   PulseCard             [_             {:pulse_id pulse-id
+                                                         :card_id  card-id
+                                                         :position 0}]
+                   PulseChannel          [{pc-id :id}   {:pulse_id pulse-id}]
+                   PulseChannelRecipient [_             {:user_id          (rasta-id)
+                                                         :pulse_channel_id pc-id}]]
+     (send-pulse! (retrieve-pulse-or-alert pulse-id)))))
+
+;; Below goal alert with data
+(expect
+  [true
+   {:subject      "Alert: Goal Alert Name"
+    :recipients   [(:email (users/fetch-user :rasta))]
+    :message-type :attachments}
+   2
+   true
+   true]
+  (test-setup
+   (tt/with-temp* [Card                 [{card-id :id}  (merge (checkins-query {:filter   ["between",["field-id" (data/id :checkins :date)],"2014-02-12" "2014-02-17"]
+                                                                                :breakout [["datetime-field" (data/id :checkins :date) "day"]]})
+                                                               {:visualization_settings {:graph.show_goal true :graph.goal_value 1.1}})]
+                   Pulse                [{pulse-id :id} {:name              "Goal Alert Name"
+                                                         :alert_condition   "goal"
+                                                         :alert_description "Alert when below goal"
+                                                         :alert_first_only  false
+                                                         :alert_above_goal  false}]
+                   PulseCard             [_             {:pulse_id pulse-id
+                                                         :card_id  card-id
+                                                         :position 0}]
+                   PulseChannel          [{pc-id :id}   {:pulse_id pulse-id}]
+                   PulseChannelRecipient [_             {:user_id          (rasta-id)
+                                                         :pulse_channel_id pc-id}]]
+     (let [[result & no-more-results] (send-pulse! (retrieve-pulse-or-alert pulse-id))]
        [(empty? no-more-results)
         (select-keys result [:subject :recipients :message-type])
         (count (:message result))
