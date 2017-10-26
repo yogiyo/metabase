@@ -33,6 +33,13 @@
                   can-write?)]
     (assoc alert :read_only (not can-write?))))
 
+(api/defendpoint GET "/question/:id"
+  [id]
+    (for [alert (pulse/retrieve-alerts-for-card id api/*current-user-id*)
+        :let  [can-read?  (mi/can-read? alert)
+               can-write? (mi/can-write? alert)]]
+      (assoc alert :read_only (not can-write?))))
+
 (defn- check-card-read-permissions [{card-id :id}]
   (assert (integer? card-id))
   (api/read-check Card card-id))

@@ -5,13 +5,19 @@
              [middleware :as middleware]]
             [metabase.models
              [card :refer [Card]]
-             [pulse :as pulse :refer [Pulse]]]
-            [metabase.test.data.users :refer :all]
+             [pulse :as pulse :refer [Pulse]]
+             [pulse-card :refer [PulseCard]]
+             [pulse-channel :refer [PulseChannel]]
+             [pulse-channel-recipient :refer [PulseChannelRecipient]]]
+            [metabase.test
+             [data :as data]
+             [util :as tu]]
+            [metabase.test.data
+             [dataset-definitions :as defs]
+             [users :refer :all]]
             [metabase.test.mock.util :refer [pulse-channel-defaults]]
-            [metabase.test.util :as tu]
             [toucan.db :as db]
             [toucan.util.test :as tt]))
-
 
 (defn- user-details [user]
   (select-keys user [:email :first_name :last_login :is_qbnewb :is_superuser :id :last_name :date_joined :common_name]))
@@ -239,9 +245,6 @@
                                :details       {:channels "#general"}
                                :recipients    []})]
    :skip_if_empty     true}
-
-  ;; Need to move this extra alert stuff to the pulse table, pulse_channels makes no sense here
-
   (-> (pulse-response ((user->client :rasta) :put 200 (format "alert/%d" (:id pulse))
                               {:name              "Updated Pulse"
                                :card              {:id (:id card)}
@@ -257,3 +260,49 @@
                                                     :details       {:channels "#general"}}]
                                :skip_if_empty     false}))
       (update :channels remove-extra-channels-fields)))
+
+(expect
+  [{:alert_condition "rows",
+    :id true
+    :name "Alert Name",
+    :creator_id true
+    :updated_at true,
+    :alert_first_only false,
+    :card {:name "Foo", :description nil, :display "table", :id true},
+    :skip_if_empty false,
+    :alert_description "Alert when above goal",
+    :created_at true,
+    :alert_above_goal true
+    :creator (assoc (user-details (fetch-user :rasta)) :id true)
+    :read_only false
+    :channels
+    [{:schedule_type "daily",
+      :schedule_hour 15,
+      :channel_type "email",
+      :schedule_frame nil,
+      :recipients [{:id true, :email "rasta@metabase.com", :first_name "Rasta", :last_name "Toucan", :common_name "Rasta Toucan"}],
+      :schedule_day nil,
+      :enabled true
+      :updated_at true,
+      :pulse_id true,
+      :id true,
+      :created_at true}]}]
+  (data/with-db (data/get-or-create-database! defs/test-data)
+    (tt/with-temp* [Card                 [{card-id :id}    {:name "Foo"
+                                                            :dataset_query {:database (data/id)
+                                                                            :type     :query
+                                                                            :query {:source_table (data/id :checkins)
+                                                                                    :aggregation [["count"]]
+                                                                                    :breakout [["datetime-field" (data/id :checkins :date) "hour"]]}}}]
+                    Pulse                [{pulse-id :id} {:name              "Alert Name"
+                                                          :alert_condition   "rows"
+                                                          :alert_description "Alert when above goal"
+                                                          :alert_first_only  false
+                                                          :alert_above_goal  true}]
+                    PulseCard             [_             {:pulse_id pulse-id
+                                                          :card_id  card-id
+                                                          :position 0}]
+                    PulseChannel          [{pc-id :id}   {:pulse_id pulse-id}]
+                    PulseChannelRecipient [_             {:user_id          (user->id :rasta)
+                                                          :pulse_channel_id pc-id}]]
+      (tu/boolean-ids-and-timestamps ((user->client :rasta) :get 200 (format "alert/question/%d" card-id))))))

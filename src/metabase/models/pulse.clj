@@ -10,7 +10,8 @@
              [card :refer [Card]]
              [interface :as i]
              [pulse-card :refer [PulseCard]]
-             [pulse-channel :as pulse-channel :refer [PulseChannel]]]
+             [pulse-channel :as pulse-channel :refer [PulseChannel]]
+             [pulse-channel-recipient :refer [PulseChannelRecipient]]]
             [toucan
              [db :as db]
              [hydrate :refer [hydrate]]
@@ -85,6 +86,9 @@
 
 ;;; ------------------------------------------------------------ Pulse Fetching Helper Fns ------------------------------------------------------------
 
+(defn- hydrate-pulse [pulse]
+  (hydrate pulse :creator :cards [:channels :recipients]))
+
 (defn- remove-alert-fields [pulse]
   (dissoc pulse :alert_condition :alert_description :alert_above_goal :alert_first_only))
 
@@ -95,7 +99,7 @@
   (-> (db/select-one Pulse {:where [:and
                                     [:= :id id]
                                     [:= :alert_condition nil]]})
-      (hydrate :creator :cards [:channels :recipients])
+      hydrate-pulse
       remove-alert-fields
       (m/dissoc-in [:details :emails])))
 
@@ -104,7 +108,7 @@
   [id]
   {:pre [(integer? id)]}
   (-> (db/select-one Pulse {:where [:= :id id]})
-      (hydrate :creator :cards [:channels :recipients])
+      hydrate-pulse
       (m/dissoc-in [:details :emails])))
 
 (defn pulse->alert
@@ -121,16 +125,15 @@
   (-> (db/select-one Pulse {:where [:and
                                     [:= :id id]
                                     [:not= :alert_condition nil]]})
-      (hydrate :creator :cards [:channels :recipients])
+      hydrate-pulse
       pulse->alert
       (m/dissoc-in [:details :emails])))
 
 (defn retrieve-alerts
   "Fetch a single `Alert` by its ID value."
   []
-  (for [pulse (-> (db/select Pulse, {:where [:not= :alert_condition nil]
-                                     :order-by [[:name :asc]]} )
-                  (hydrate :creator :cards [:channels :recipients]))]
+  (for [pulse (hydrate-pulse (db/select Pulse, {:where [:not= :alert_condition nil]
+                                                :order-by [[:name :asc]]}))]
 
     (-> pulse
         pulse->alert
@@ -139,12 +142,25 @@
 (defn retrieve-pulses
   "Fetch all `Pulses`."
   []
-  (for [pulse (-> (db/select Pulse, {:where [:= :alert_condition nil]
-                                     :order-by [[:name :asc]]} )
-                  (hydrate :creator :cards [:channels :recipients]))]
+  (for [pulse (hydrate-pulse (db/select Pulse, {:where [:= :alert_condition nil]
+                                                :order-by [[:name :asc]]} ))]
     (-> pulse
         remove-alert-fields
         (m/dissoc-in [:details :emails]))))
+
+(defn retrieve-alerts-for-card
+  [card-id user-id]
+  (map (comp pulse->alert hydrate-pulse #(into (PulseInstance.) %))
+       (db/query {:select    [:p.*]
+                  :from      [[Pulse :p]]
+                  :join      [[PulseCard :pc] [:= :p.id :pc.pulse_id]
+                              [PulseChannel :pchan] [:= :p.id :pc.pulse_id]
+                              [PulseChannelRecipient :pcr] [:= :pchan.id :pcr.pulse_channel_id]]
+                  :where     [:and
+                              [:not= :p.alert_condition nil]
+                              [:= :pc.card_id card-id]
+                              [:or [:= :p.creator_id user-id]
+                               [:= :pcr.user_id user-id]]]})))
 
 
 ;;; ------------------------------------------------------------ Other Persistence Functions ------------------------------------------------------------
