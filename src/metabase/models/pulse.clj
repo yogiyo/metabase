@@ -107,7 +107,9 @@
       (hydrate :creator :cards [:channels :recipients])
       (m/dissoc-in [:details :emails])))
 
-(defn pulse->alert [pulse]
+(defn pulse->alert
+  "Convert a pulse to an alert"
+  [pulse]
   (-> pulse
       (assoc :card (first (:cards pulse)))
       (dissoc :cards)))
@@ -125,8 +127,7 @@
 
 (defn retrieve-alerts
   "Fetch a single `Alert` by its ID value."
-  [id]
-  {:pre [(integer? id)]}
+  []
   (for [pulse (-> (db/select Pulse, {:where [:not= :alert_condition nil]
                                      :order-by [[:name :asc]]} )
                   (hydrate :creator :cards [:channels :recipients]))]
@@ -242,12 +243,15 @@
                        card-ids channels false))
 
 (defn create-alert!
+  "Creates a pulse with the correct fields specified for an alert"
   [alert creator-id card-id channels]
   (-> alert
       (assoc :skip_if_empty true :creator_id creator-id)
       (create-notification [card-id] channels true)))
 
-(defn update-notification! [{:keys [id name cards channels skip-if-empty?] :as pulse}]
+(defn update-notification!
+  "Updates the pulse/alert and updates the related channels"
+  [{:keys [id name cards channels skip-if-empty?] :as pulse}]
   (db/transaction
     ;; update the pulse itself
     (db/update! Pulse id, :name name, :skip_if_empty skip-if-empty?)
@@ -274,7 +278,9 @@
   (->> (retrieve-pulse id)
        (events/publish-event! :pulse-update)))
 
-(defn update-alert! [{:keys [id card] :as alert}]
+(defn update-alert!
+  "Updates the given `ALERT` and returns it"
+  [{:keys [id card] :as alert}]
   (-> alert
       (assoc :skip-if-empty? true :cards [card])
       (dissoc :card)

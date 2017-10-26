@@ -73,26 +73,8 @@
     :message-type message-type
     :message      message))
 
-(defn- send-email-alert!
-  "Send a `Pulse` email given a list of card results to render and a list of recipients to send to."
-  [{:keys [id name] :as pulse} results recipients]
-  (log/debug (format "Sending Alert (%d: %s) via Channel :email" id name))
-  (let [email-subject    (str "Alert: " name)
-        email-recipients (filterv u/is-email? (map :email recipients))
-        timezone         (-> results first :card defaulted-timezone)]
-    (email/send-message!
-      :subject      email-subject
-      :recipients   email-recipients
-      :message-type :attachments
-      :message      (messages/render-alert-email timezone pulse results))))
-
 (defn- alert? [pulse]
   (boolean (:alert_condition pulse)))
-
-(defn- send-email-notification! [pulse results recipients]
-  (if (alert? pulse)
-    (send-email-alert! pulse results recipients)
-    (send-email-pulse! pulse results recipients)))
 
 (defn create-slack-attachment-data
   "Returns a seq of slack attachment data structures, used in `create-and-upload-slack-attachments!`"

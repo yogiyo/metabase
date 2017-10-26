@@ -37,13 +37,13 @@
   (assert (integer? card-id))
   (api/read-check Card card-id))
 
-(defn- check-channels [channels]
+#_(defn- check-channels [channels]
   (every? (fn [channel]
             (and (get channel :description)
                  (contains? #{"rows" "goal"} (get channel :condition))))
           channels))
 
-(def AlertConditions
+(def ^:private AlertConditions
   (s/enum "rows" "goal"))
 
 (defn- only-alert-keys [request]
