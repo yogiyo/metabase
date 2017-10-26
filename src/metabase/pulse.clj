@@ -44,7 +44,7 @@
                                  (System/getProperty "user.timezone"))]
     (TimeZone/getTimeZone timezone-str)))
 
-(defn- create-email-notification [{:keys [id name] :as pulse} results recipients]
+(defn- create-pulse-notification [{:keys [id name] :as pulse} results recipients]
   (log/debug (format "Sending Pulse (%d: %s) via Channel :email" id name))
   (let [email-subject    (str "Pulse: " name)
         email-recipients (filterv u/is-email? (map :email recipients))
@@ -53,6 +53,16 @@
      :recipients   email-recipients
      :message-type :attachments
      :message      (messages/render-pulse-email timezone pulse results)}))
+
+(defn- create-alert-notification [{:keys [id name] :as pulse} results recipients]
+  (log/debug (format "Sending Pulse (%d: %s) via Channel :email" id name))
+  (let [email-subject    (str "Alert: " name)
+        email-recipients (filterv u/is-email? (map :email recipients))
+        timezone         (-> results first :card defaulted-timezone)]
+    {:subject      email-subject
+     :recipients   email-recipients
+     :message-type :attachments
+     :message      (messages/render-alert-email timezone pulse results)}))
 
 (defn- send-email-pulse!
   "Send a `Pulse` email given a list of card results to render and a list of recipients to send to."
@@ -150,17 +160,21 @@
 
 (defn- should-send-notification?
   [{:keys [alert_condition] :as pulse} results]
-  (printf "alert? %s\n are-all-cards-empty? %s rows-alert? %s" )
   (cond
+    (and (alert? pulse)
+         (rows-alert? pulse))
+    (not (are-all-cards-empty? results))
+
+    (and (alert? pulse)
+         (goal-alert? pulse))
+    (not (goal-met? pulse results))
+
     (and (not (alert? pulse))
          (:skip_if_empty pulse))
     (not (are-all-cards-empty? results))
 
-    (rows-alert? pulse)
-    (not (are-all-cards-empty? results))
-
-    (goal-alert? pulse)
-    (goal-met? pulse results)))
+    :else
+    true))
 
 (defn- pulse->notifications [{:keys [cards channel-ids], :as pulse}]
   (let [results     (for [card  cards
@@ -168,12 +182,14 @@
                           :when result] ; some cards may return empty results, e.g. if the card has been archived
                       result)
         channel-ids (or channel-ids (mapv :id (:channels pulse)))]
-    (when-not (and (:skip_if_empty pulse) (are-all-cards-empty? results))
+    (when (should-send-notification? pulse results)
       (for [channel-id channel-ids
             :let [{:keys [channel_type details recipients]} (some #(when (= channel-id (:id %)) %)
                                                                   (:channels pulse))]]
           (case (keyword channel_type)
-            :email (create-email-notification pulse results recipients)
+            :email ((if (alert? pulse)
+                      create-alert-notification
+                      create-pulse-notification) pulse results recipients)
             :slack (create-slack-notification pulse results (:channel details)))))))
 
 (defn send-pulse!

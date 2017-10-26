@@ -245,4 +245,4 @@
                                render/*render-img-fn* (partial render-image images)]
                        (vec (cons :div (for [result results]
                                          (render/render-pulse-section timezone result)))))]
-    (render-message-body "metabase/email/alert" (alert-context body pulse (seq @images)))))
+    (render-message-body "metabase/email/alert" (alert-context body pulse) (seq @images))))
