@@ -1,4 +1,5 @@
 import { AsyncApi } from "metabase/services";
+import _ from "underscore";
 
 export class RestfulRequest {
     // API endpoint that is used for the request
@@ -13,10 +14,16 @@ export class RestfulRequest {
     // can make the migration process from old implementation to this request API a lot easier
     resultPropName = 'result'
 
-    constructor({ endpoint, actionPrefix, resultPropName } = {}) {
+    // If `true`, then the result (either an object an array) will be converted to a dictionary
+    // where the dictionary key is the `id` field of the result.
+    // This dictionary is merged to the possibly pre-existing dictionary.
+    storeAsDictionary = false
+
+    constructor({ endpoint, actionPrefix, resultPropName, storeAsDictionary } = {}) {
         this.endpoint = endpoint
         this.actionPrefix = actionPrefix
         this.resultPropName = resultPropName || this.resultPropName
+        this.storeAsDictionary = storeAsDictionary
 
         this.actions = {
             requestStarted: `${this.actionPrefix}/REQUEST_STARTED`,
@@ -42,11 +49,22 @@ export class RestfulRequest {
 
     reset = () => (dispatch) => dispatch(this.actions.reset)
 
+    mergeToDictionary = (dict, result) => {
+        dict = dict || {}
+        result = _.isArray(result)
+            ? _.indexBy(result, "id")
+            : { [result.id]: result }
+
+        return { ...dict, ...result }
+    }
+
     getReducers = () => ({
         [this.actions.requestStarted]: (state) => ({...state, loading: true}),
         [this.actions.requestSuccessful]: (state, { payload: { result }}) => ({
             ...state,
-            [this.resultPropName]: result,
+            [this.resultPropName]: this.storeAsDictionary
+                ? this.mergeToDictionary(state[this.resultPropName], result)
+                : result,
             loading: false,
             fetched: true
         }),

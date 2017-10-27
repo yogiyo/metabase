@@ -35,14 +35,19 @@ import NativeQuery from "metabase-lib/lib/queries/NativeQuery";
 import Utils from "metabase/lib/utils";
 import EntityMenu from "metabase/components/EntityMenu";
 import { CreateAlertModalContent, UpdateAlertModalContent } from "metabase/query_builder/components/AlertModals";
+import { AlertListPopoverContent } from "metabase/query_builder/components/AlertListPopoverContent";
+import { getQuestionAlerts } from "metabase/query_builder/selectors";
+
+const mapStateToProps = (state, props) => ({
+    questionAlerts: getQuestionAlerts(state)
+})
 
 const mapDispatchToProps = {
     clearRequestState
 };
-
 const ICON_SIZE = 16
 
-@connect(null, mapDispatchToProps)
+@connect(mapStateToProps, mapDispatchToProps)
 export default class QueryHeader extends Component {
     constructor(props, context) {
         super(props, context);
@@ -61,6 +66,7 @@ export default class QueryHeader extends Component {
     }
 
     static propTypes = {
+        question: PropTypes.object.isRequired,
         card: PropTypes.object.isRequired,
         originalCard: PropTypes.object,
         isEditing: PropTypes.bool.isRequired,
@@ -227,7 +233,7 @@ export default class QueryHeader extends Component {
     }
 
     getHeaderButtons() {
-        const { question, card ,isNew, isDirty, isEditing, tableMetadata, databases } = this.props;
+        const { question, questionAlerts, card ,isNew, isDirty, isEditing, tableMetadata, databases } = this.props;
         const database = _.findWhere(databases, { id: card && card.dataset_query && card.dataset_query.database });
 
         var buttonSections = [];
@@ -434,18 +440,22 @@ export default class QueryHeader extends Component {
         ]);
 
         if (!isNew && card.can_write) {
+            const createAlertItem = {
+                title: "Get alerts about this",
+                icon: "alert",
+                action: () => this.setState({ modal: "create-alert" })
+            }
+            const updateAlertItem = {
+                title: "Alerts are on",
+                icon: "alert",
+                content: (toggleMenu) => <AlertListPopoverContent onCancel={toggleMenu} />
+            }
+
             buttonSections.push([
                 <div className="mr1" style={{ marginLeft: "-15px" }}>
                     <EntityMenu
                         triggerIcon='burger'
-                        items={[
-                            {
-                                title: "Get alerts about this",
-                                icon: "alert",
-                                // trigger modal here omg
-                                action: () => this.setState({ modal: "create-alert" })
-                            }
-                        ]}
+                        items={[ Object.values(questionAlerts).length > 0 ? updateAlertItem : createAlertItem ]}
                     />
                 </div>
             ]);

@@ -1,4 +1,6 @@
 /*@flow weak*/
+import { fetchAlertsForQuestion } from "metabase/alert/alert";
+
 declare var ace: any;
 
 import React from 'react'
@@ -288,6 +290,9 @@ export const initializeQB = (location, params) => {
             originalCard,
             uiControls
         });
+
+        // Fetch alerts for the current question if the question is saved
+        card && card.id && dispatch(fetchAlertsForQuestion(card.id))
 
         // Fetch the question metadata
         card && dispatch(loadMetadataForCard(card));
@@ -1201,33 +1206,6 @@ export const viewPreviousObjectDetail = () => {
         ))
 
         dispatch(runQuestionQuery());
-    }
-}
-
-export const CREATE_ALERT = 'metabase/qb/CREATE_ALERT'
-export const createAlert = (alert) => {
-    return (dispatch, getState) => {
-        const question = getQuestion(getState());
-        dispatch(updateQuestion(
-            question.addAlarm(alert),
-            { doNotClearNameAndId: true }
-        ))
-
-        dispatch(addUndo(createUndo({
-            type: "create-alert",
-            // eslint-disable-next-line react/display-name
-            message: () => <div>Your alert is all set up.</div>,
-            action: null // no undo action in this case
-        })));
-
-        dispatch.action(CREATE_ALERT)
-    }
-}
-
-export const UPDATE_ALERT = 'metabase/qb/UPDATE_ALERT'
-export const updateAlert = (alert) => {
-    return (dispatch, getState) => {
-        dispatch.action(UPDATE_ALERT)
     }
 }
 
