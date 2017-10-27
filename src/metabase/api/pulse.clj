@@ -47,7 +47,7 @@
    channels      (su/non-empty [su/Map])
    skip_if_empty s/Bool}
   (check-card-read-permissions cards)
-  (api/check-500 (pulse/create-pulse! name api/*current-user-id* (map u/get-id cards) channels skip_if_empty)))
+  (api/check-500 (pulse/create-pulse! name api/*current-user-id* (map pulse/create-card-ref cards) channels skip_if_empty)))
 
 
 (api/defendpoint GET "/:id"
@@ -68,7 +68,7 @@
   (check-card-read-permissions cards)
   (pulse/update-pulse! {:id             id
                         :name           name
-                        :cards          (map u/get-id cards)
+                        :cards          (map pulse/create-card-ref cards)
                         :channels       channels
                         :skip-if-empty? skip_if_empty})
   (pulse/retrieve-pulse id))

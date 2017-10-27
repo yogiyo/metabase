@@ -77,12 +77,16 @@
 (defn ^:hydrate cards
   "Return the `Cards` associated with this PULSE."
   [{:keys [id]}]
-  (db/select [Card :id :name :description :display]
-    :archived false
-    (mdb/join [Card :id] [PulseCard :card_id])
-    (db/qualify PulseCard :pulse_id) id
-    {:order-by [[(db/qualify PulseCard :position) :asc]]}))
-
+  (map #(models/do-post-select Card %)
+       (db/query
+        {:select    [:c.id :c.name :c.description :c.display :pc.include_csv :pc.include_xls]
+         :from      [[Pulse :p]]
+         :join      [[PulseCard :pc] [:= :p.id :pc.pulse_id]
+                     [Card :c] [:= :c.id :pc.card_id]]
+         :where     [:and
+                     [:= :p.id id]
+                     [:= :c.archived false]]
+         :order-by [[:pc.position :asc]]})))
 
 ;;; ------------------------------------------------------------ Pulse Fetching Helper Fns ------------------------------------------------------------
 
@@ -149,6 +153,7 @@
         (m/dissoc-in [:details :emails]))))
 
 (defn retrieve-alerts-for-card
+  "Returns all alerts for `CARD-ID` associated to `USER-ID`, both created and as a recipient"
   [card-id user-id]
   (map (comp pulse->alert hydrate-pulse #(into (PulseInstance.) %))
        (db/query {:select    [:p.*]
@@ -162,6 +167,12 @@
                               [:or [:= :p.creator_id user-id]
                                [:= :pcr.user_id user-id]]]})))
 
+(defn create-card-ref
+  "Create a card reference from a card or id"
+  [card]
+  {:id          (u/get-id card)
+   :include_csv (get card :include_csv false)
+   :include_xls (get card :include_xls false)})
 
 ;;; ------------------------------------------------------------ Other Persistence Functions ------------------------------------------------------------
 
@@ -172,16 +183,20 @@
    *  If an ID in CARD-IDS has no corresponding existing `PulseCard` object, one will be created.
    *  If an existing `PulseCard` has no corresponding ID in CARD-IDs, it will be deleted.
    *  All cards will be updated with a `position` according to their place in the collection of CARD-IDS"
-  {:arglists '([pulse card-ids])}
-  [{:keys [id]} card-ids]
+  {:arglists '([pulse card-refs])}
+  [{:keys [id]} card-refs]
   {:pre [(integer? id)
-         (sequential? card-ids)
-         (every? integer? card-ids)]}
+         (sequential? card-refs)
+         (every? map? card-refs)]}
   ;; first off, just delete any cards associated with this pulse (we add them again below)
   (db/delete! PulseCard :pulse_id id)
   ;; now just insert all of the cards that were given to us
-  (when (seq card-ids)
-    (let [cards (map-indexed (fn [i card-id] {:pulse_id id, :card_id card-id, :position i}) card-ids)]
+  (when (seq card-refs)
+    (let [cards (map-indexed (fn [i {card-id :id :keys [include_csv include_xls]}]
+                               {:pulse_id    id, :card_id     card-id,
+                                :position    i   :include_csv include_csv,
+                                :include_xls include_xls})
+                             card-refs)]
       (db/insert-many! PulseCard cards))))
 
 
@@ -250,7 +265,7 @@
          (integer? creator-id)
          (sequential? card-ids)
          (seq card-ids)
-         (every? integer? card-ids)
+         (every? map? card-ids)
          (coll? channels)
          (every? map? channels)]}
   (create-notification {:creator_id    creator-id
@@ -286,7 +301,7 @@
          (string? name)
          (sequential? cards)
          (> (count cards) 0)
-         (every? integer? cards)
+         (every? map? cards)
          (coll? channels)
          (every? map? channels)]}
   (update-notification! pulse)

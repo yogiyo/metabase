@@ -23,8 +23,9 @@
   (select-keys user [:email :first_name :last_login :is_qbnewb :is_superuser :id :last_name :date_joined :common_name]))
 
 (defn- pulse-card-details [card]
-  (-> (select-keys card [:id :name :description :display])
-      (update :display name)))
+  (-> (select-keys card [:id :name :description :display :include_csv :include_xls])
+      (update :display name)
+      (assoc :include_csv false :include_xls false)))
 
 (defn- pulse-channel-details [channel]
   (select-keys channel [:schedule_type :schedule_details :channel_type :updated_at :details :pulse_id :id :enabled :created_at]))
@@ -268,7 +269,8 @@
     :creator_id true
     :updated_at true,
     :alert_first_only false,
-    :card {:name "Foo", :description nil, :display "table", :id true},
+    :card {:name "Foo", :description nil, :display "table",
+           :id true, :include_csv false, :include_xls false},
     :skip_if_empty false,
     :alert_description "Alert when above goal",
     :created_at true,

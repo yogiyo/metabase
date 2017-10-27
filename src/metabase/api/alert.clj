@@ -70,7 +70,7 @@
   (api/check-500
    (-> req
        only-alert-keys
-       (pulse/create-alert! api/*current-user-id* (u/get-id card) channels))))
+       (pulse/create-alert! api/*current-user-id* (pulse/create-card-ref card) channels))))
 
 (api/defendpoint PUT "/:id"
   "Update a `Alert` with ID."
@@ -86,7 +86,7 @@
   (check-card-read-permissions card)
   (-> req
       only-alert-keys
-      (assoc :id id :card (u/get-id card) :channels channels)
+      (assoc :id id :card (pulse/create-card-ref card) :channels channels)
       pulse/update-alert!))
 
 (api/define-routes)
