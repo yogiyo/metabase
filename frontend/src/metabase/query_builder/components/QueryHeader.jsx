@@ -34,7 +34,7 @@ import _ from "underscore";
 import NativeQuery from "metabase-lib/lib/queries/NativeQuery";
 import Utils from "metabase/lib/utils";
 import EntityMenu from "metabase/components/EntityMenu";
-import { CreateAlertModalContent, UpdateAlertModalContent } from "metabase/query_builder/components/AlertModals";
+import { CreateAlertModalContent } from "metabase/query_builder/components/AlertModals";
 import { AlertListPopoverContent } from "metabase/query_builder/components/AlertListPopoverContent";
 import { getQuestionAlerts } from "metabase/query_builder/selectors";
 
