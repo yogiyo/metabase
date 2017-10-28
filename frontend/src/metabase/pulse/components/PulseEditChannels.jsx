@@ -43,8 +43,9 @@ export default class PulseEditChannels extends Component {
         user: PropTypes.object.isRequired,
         userList: PropTypes.array.isRequired,
         setPulse: PropTypes.func.isRequired,
-        testPulse: PropTypes.func.isRequired,
-        cardPreviews: PropTypes.array
+        testPulse: PropTypes.func,
+        cardPreviews: PropTypes.array,
+        hideSchedulePicker: PropTypes.bool
     };
     static defaultProps = {};
 
@@ -191,7 +192,7 @@ export default class PulseEditChannels extends Component {
                 { channelSpec.fields &&
                     this.renderFields(channel, index, channelSpec)
                 }
-                { channelSpec.schedules &&
+                { !this.props.hideSchedulePicker && channelSpec.schedules &&
                     <SchedulePicker
                         schedule={_.pick(channel, "schedule_day", "schedule_frame", "schedule_hour", "schedule_type") }
                         scheduleOptions={channelSpec.schedules}
@@ -200,19 +201,21 @@ export default class PulseEditChannels extends Component {
                         onScheduleChange={this.onChannelScheduleChange.bind(this, index)}
                     />
                 }
-                <div className="pt2">
-                    <ActionButton
-                        actionFn={this.onTestPulseChannel.bind(this, channel)}
-                        className={cx("Button", { disabled: !isValid })}
-                        normalText={channelSpec.type === "email" ?
-                            "Send email now" :
-                            "Send to  " + channelSpec.name + " now"}
-                        activeText="Sending…"
-                        failedText="Sending failed"
-                        successText={ this.willPulseSkip() ?  "Didn’t send because the pulse has no results." : "Pulse sent"}
-                        forceActiveStyle={ this.willPulseSkip() }
-                    />
-                </div>
+                { this.props.testPulse &&
+                    <div className="pt2">
+                        <ActionButton
+                            actionFn={this.onTestPulseChannel.bind(this, channel)}
+                            className={cx("Button", { disabled: !isValid })}
+                            normalText={channelSpec.type === "email" ?
+                                "Send email now" :
+                                "Send to  " + channelSpec.name + " now"}
+                            activeText="Sending…"
+                            failedText="Sending failed"
+                            successText={ this.willPulseSkip() ?  "Didn’t send because the pulse has no results." : "Pulse sent"}
+                            forceActiveStyle={ this.willPulseSkip() }
+                        />
+                    </div>
+                }
             </li>
         );
     }

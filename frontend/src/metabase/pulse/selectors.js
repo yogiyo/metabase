@@ -16,7 +16,7 @@ const cardIdListSelector   = state => state.pulse.cardList
 
 const usersSelector        = state => state.pulse.users
 
-const formInputSelector    = state => state.pulse.formInput
+export const formInputSelector    = state => state.pulse.formInput
 
 const cardPreviewsSelector = state => state.pulse.cardPreviews
 
@@ -25,7 +25,7 @@ const cardListSelector = createSelector(
     (cardIdList, cards) => cardIdList && cardIdList.map(id => cards[id])
 );
 
-const userListSelector = createSelector(
+export const userListSelector = createSelector(
     [usersSelector],
     (users) => Object.values(users)
 );
