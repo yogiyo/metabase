@@ -5,6 +5,7 @@ import { addUndo, createUndo } from "metabase/redux/undo";
 
 import { AlertApi } from "metabase/services";
 import { RestfulRequest } from "metabase/lib/request";
+import { getUser } from "metabase/selectors/user";
 
 export const FETCH_ALL_ALERTS = 'metabase/alerts/FETCH_ALL_ALERTS'
 const fetchAllAlertsRequest = new RestfulRequest({
@@ -66,6 +67,20 @@ export const updateAlert = (alert) => {
     return async (dispatch, getState) => {
         await dispatch(updateAlertRequest.trigger(alert))
         dispatch.action(UPDATE_ALERT)
+    }
+}
+
+export const UNSUBSCRIBE_FROM_ALERT = 'metabase/alerts/UNSUBSCRIBE_FROM_ALERT'
+export const unsubscribeFromAlert = (alert) => {
+    return async (dispatch, getState) => {
+        const user = getUser(getState())
+        await dispatch(updateAlert({
+            ...alert,
+            channels: alert.channels.map(c => c.channel_type !== "email" ? c :
+                { ...c, recipients: c.recipients.filter(r => r.id !== user.id)}
+            )
+        }));
+        dispatch.action(UNSUBSCRIBE_FROM_ALERT)
     }
 }
 
