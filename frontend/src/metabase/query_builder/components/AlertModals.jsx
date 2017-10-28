@@ -97,7 +97,7 @@ export class CreateAlertModalContent extends Component {
             <ModalContent
                 onClose={onClose}
             >
-                <div className="PulseEdit ml-auto mr-auto" style={{maxWidth: "550px"}}>
+                <div className="PulseEdit ml-auto mr-auto mb4" style={{maxWidth: "550px"}}>
                     <AlertModalTitle text="Let's set up your alert" />
                     <AlertEditForm
                         alert={alert}
@@ -169,9 +169,8 @@ export class UpdateAlertModalContent extends Component {
         return (
             <ModalContent
                 onClose={onClose}
-                onClick={ (e) => { console.log('moikkelis'), e.stopPropagation(); } }
             >
-                <div className="PulseEdit ml-auto mr-auto" style={{maxWidth: "550px"}}>
+                <div className="PulseEdit ml-auto mr-auto mb4" style={{maxWidth: "550px"}}>
                     <AlertModalTitle text="Edit your alert" />
                     <AlertEditForm
                         alert={modifiedAlert}
@@ -213,7 +212,7 @@ export class AlertEditForm extends Component {
     render() {
         const { alert, isAdmin, onAlertChange } = this.props
 
-        // the schedule is same for all channels so we can use the first one
+        // the schedule should be same for all channels so we can use the first one
         const schedule = getScheduleFromChannel(alert.channels[0])
 
         return (
@@ -246,7 +245,7 @@ export class AlertEditSchedule extends Component {
                     <div className="p3 bg-grey-0">
                         <SchedulePicker
                             schedule={schedule}
-                            scheduleOptions={["hourly", "daily", "weekly", "monthly"]}
+                            scheduleOptions={["hourly", "daily", "weekly"]}
                             onScheduleChange={this.props.onScheduleChange}
                             textBeforeInterval="Check"
                         />
@@ -281,7 +280,7 @@ export class AlertEditChannels extends Component {
     onSetPulse = (alert) => {
         // If the pulse channel has been added, it PulseEditChannels puts the default schedule to it
         // We want to have same schedule for all channels
-        const schedule = getScheduleFromChannel(alert.channels[0])
+        const schedule = getScheduleFromChannel(alert.channels.find((c) => c.channel_type === "email"))
 
         this.props.onAlertChange({
             ...alert,
@@ -294,20 +293,18 @@ export class AlertEditChannels extends Component {
         return (
             <div>
                 <h3>Where do you want to send these alerts?</h3>
-                <div className="bordered rounded mb2">
-                    <div className="p3 bg-grey-0">
-                        [channels come here, pretty much replicating the pulse channels form or even reusing a generalized version of PulseEditChannels]
-                        <PulseEditChannels
-                            pulse={alert}
-                            pulseId={alert.id}
-                            pulseIsValid={true}
-                            formInput={formInput}
-                            user={user}
-                            userList={userList}
-                            setPulse={this.onSetPulse}
-                            hideSchedulePicker={true}
-                         />
-                    </div>
+                <div className="mb2">
+                    <PulseEditChannels
+                        pulse={alert}
+                        pulseId={alert.id}
+                        pulseIsValid={true}
+                        formInput={formInput}
+                        user={user}
+                        userList={userList}
+                        setPulse={this.onSetPulse}
+                        hideSchedulePicker={true}
+                        emailRecipientText={"Email alerts to:"}
+                     />
                 </div>
             </div>
         )

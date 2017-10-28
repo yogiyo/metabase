@@ -38,7 +38,7 @@ export class AlertListPopoverContent extends Component {
                         <AlertListItem alert={alert} setMenuFreeze={setMenuFreeze} />)
                     }
                     <li>
-                        <a onClick={this.onAdd}>
+                        <a className="link" onClick={this.onAdd}>
                             Add new alert (this button isn't in the design)
                         </a>
                     </li>
@@ -85,17 +85,38 @@ export class AlertListItem extends Component {
         const isAdmin = user.is_superuser
         const isCurrentUser = alert.creator.id === user.id
 
+        const emailChannel = alert.channels.find((c) => c.channel_type === "email")
+        const emailEnabled = emailChannel && emailChannel.enabled
+        const slackChannel = alert.channels.find((c) => c.channel_type === "slack")
+        const slackEnabled = slackChannel && slackChannel.enabled
+
         if (unsubscribed) {
             return <li>Okay, you're unsubscribed</li>
         }
 
         return (
             <li>
-                <AlertCreatorTitle alert={alert} user={user} />
-                { !isAdmin && <a onClick={this.onUnsubscribe}>Unsubscribe</a> }
-                { (isAdmin || isCurrentUser) && <a onClick={this.onEdit}>Edit</a> }
-                <ul>
-                    <Icon name="clock" /> <AlertScheduleText schedule={alert.channels[0]} verbose={!isAdmin} />
+                <div className="flex">
+                    <div className="flex-full"><AlertCreatorTitle alert={alert} user={user} /></div>
+                    <div>
+                        { !isAdmin && <a className="link" onClick={this.onUnsubscribe}>Unsubscribe</a> }
+                        { (isAdmin || isCurrentUser) && <span> <a className="link" onClick={this.onEdit}>Edit</a></span> }
+                    </div>
+                </div>
+                <ul className="flex">
+                    <li><Icon name="clock" /> <AlertScheduleText schedule={alert.channels[0]} verbose={!isAdmin} /></li>
+                    { isAdmin && emailEnabled &&
+                        <li className="ml1">
+                            <Icon name="mail" />
+                            { emailChannel.recipients.length }
+                        </li>
+                    }
+                    { isAdmin && slackEnabled &&
+                        <li className="ml1">
+                            <Icon name="slack" size={16} />
+                            { slackChannel.details.channel.replace("#","") }
+                        </li>
+                    }
                 </ul>
                 <hr />
 
@@ -109,12 +130,11 @@ export class AlertListItem extends Component {
 
 
 export class AlertScheduleText extends Component {
-
     getScheduleText = () => {
         const { schedule, verbose } = this.props
         const scheduleType = schedule.schedule_type
 
-        // these are pretty much copypasted from SchedulePicker
+        // these are pretty much copy-pasted from SchedulePicker
         if (scheduleType === "hourly") {
             return verbose ? "hourly" : "Hourly";
         } else if (scheduleType === "daily") {
@@ -163,6 +183,6 @@ export class AlertCreatorTitle extends Component {
             ? `You're receiving ${creator}'s alerts`
             : `${creator} set up an alert`
 
-        return <h2>{text}</h2>
+        return <h3>{text}</h3>
     }
 }

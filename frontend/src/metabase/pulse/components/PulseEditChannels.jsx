@@ -45,7 +45,8 @@ export default class PulseEditChannels extends Component {
         setPulse: PropTypes.func.isRequired,
         testPulse: PropTypes.func,
         cardPreviews: PropTypes.array,
-        hideSchedulePicker: PropTypes.bool
+        hideSchedulePicker: PropTypes.bool,
+        emailRecipientText: PropTypes.string
     };
     static defaultProps = {};
 
@@ -179,7 +180,7 @@ export default class PulseEditChannels extends Component {
                 }
                 { channelSpec.recipients &&
                     <div>
-                        <div className="h4 text-bold mb1">To:</div>
+                        <div className="h4 text-bold mb1">{ this.props.emailRecipientText || "To:" }</div>
                         <RecipientPicker
                             isNewPulse={this.props.pulseId === undefined}
                             recipients={channel.recipients}
@@ -253,14 +254,11 @@ export default class PulseEditChannels extends Component {
             slack: { name: "Slack", type: "slack" }
         };
         return (
-            <div className="py1 mb4">
-                <h2 className="mb3">Where should this data go?</h2>
-                <ul className="bordered rounded">
-                    {Object.values(channels).map(channelSpec =>
-                        this.renderChannelSection(channelSpec)
-                    )}
-                </ul>
-            </div>
+            <ul className="bordered rounded">
+                {Object.values(channels).map(channelSpec =>
+                    this.renderChannelSection(channelSpec)
+                )}
+            </ul>
         );
     }
 }
