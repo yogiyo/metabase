@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import Button from "metabase/components/Button";
 import SchedulePicker from "metabase/components/SchedulePicker";
 import { connect } from "react-redux";
-import { createAlert, updateAlert } from "metabase/alert/alert";
+import { createAlert, deleteAlert, updateAlert } from "metabase/alert/alert";
 import ModalContent from "metabase/components/ModalContent";
 import { getUser, getUserIsAdmin } from "metabase/selectors/user";
 import { getQuestion } from "metabase/query_builder/selectors";
@@ -10,6 +10,9 @@ import _ from "underscore";
 import PulseEditChannels from "metabase/pulse/components/PulseEditChannels";
 import { fetchPulseFormInput, fetchUsers } from "metabase/pulse/actions";
 import { formInputSelector, userListSelector } from "metabase/pulse/selectors";
+import DeleteModalWithConfirm from "metabase/components/DeleteModalWithConfirm";
+import ModalWithTrigger from "metabase/components/ModalWithTrigger";
+import { inflect } from "metabase/lib/formatting";
 
 const getScheduleFromChannel = (channel) =>
     _.pick(channel, "schedule_day", "schedule_frame", "schedule_hour", "schedule_type")
@@ -133,12 +136,14 @@ export class AlertEducationalScreen extends Component {
     }
 }
 
-@connect((state) => ({ isAdmin: getUserIsAdmin(state) }), { updateAlert })
+@connect((state) => ({ isAdmin: getUserIsAdmin(state) }), { updateAlert, deleteAlert })
 export class UpdateAlertModalContent extends Component {
     props: {
         alert: any,
+        onClose: boolean,
         updateAlert: (any) => void,
-        onClose: boolean
+        deleteAlert: (any) => void,
+        isAdmin: boolean
     }
 
     constructor(props) {
@@ -161,8 +166,14 @@ export class UpdateAlertModalContent extends Component {
         onClose()
     }
 
+    onDeleteAlert = async () => {
+        const { alert, deleteAlert, onClose } = this.props
+        await deleteAlert(alert.id)
+        onClose()
+    }
+
     render() {
-        const { onClose } = this.props
+        const { onClose, alert, isAdmin } = this.props
         const { modifiedAlert } = this.state
 
         // TODO: Remove PulseEdit css hack
@@ -177,10 +188,56 @@ export class UpdateAlertModalContent extends Component {
                         onAlertChange={this.onAlertChange}
                         onDone={this.onUpdateAlert}
                     />
+                    { isAdmin && <DeleteAlertSection alert={alert} onDeleteAlert={this.onDeleteAlert} /> }
                     <Button onClick={onClose}>Cancel</Button>
                     <Button primary onClick={this.onUpdateAlert}>Done</Button>
                 </div>
             </ModalContent>
+        )
+    }
+}
+
+export class DeleteAlertSection extends Component {
+    deleteModal: any
+
+    getConfirmItems() {
+        // same as in PulseEdit but with some changes to copy
+        return this.props.alert.channels.map(c =>
+            c.channel_type === "email" ?
+                <span>This alert will no longer be emailed to <strong>{c.recipients.length} {inflect("address", c.recipients.length)}</strong>.</span>
+                : c.channel_type === "slack" ?
+                <span>Slack channel <strong>{c.details && c.details.channel}</strong> will no longer get this alert.</span>
+                :
+                <span>Channel <strong>{c.channel_type}</strong> will no longer receive this alert.</span>
+        );
+    }
+
+    render() {
+        const { onDeleteAlert } = this.props
+
+        return (
+            <div className="DangerZone mb2 p3 rounded bordered relative">
+                <h3 className="text-error absolute top bg-white px1" style={{ marginTop: "-12px" }}>Danger Zone</h3>
+                <div className="ml1">
+                    <h4 className="text-bold mb1">Delete this alert</h4>
+                    <div className="flex">
+                        <p className="h4 pr2">Stop delivery and delete this alert. There's no undo, so be careful.</p>
+                        <ModalWithTrigger
+                            ref={(ref) => this.deleteModal = ref}
+                            triggerClasses="Button Button--danger flex-align-right flex-no-shrink"
+                            triggerElement="Delete this Alert"
+                        >
+                            <DeleteModalWithConfirm
+                                objectType="alert"
+                                title="Delete this alert?"
+                                confirmItems={this.getConfirmItems()}
+                                onClose={() => this.deleteModal.close()}
+                                onDelete={onDeleteAlert}
+                            />
+                        </ModalWithTrigger>
+                    </div>
+                </div>
+            </div>
         )
     }
 }

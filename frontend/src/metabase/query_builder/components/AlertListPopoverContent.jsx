@@ -2,17 +2,19 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { getQuestionAlerts } from "metabase/query_builder/selectors";
 import { getUser } from "metabase/selectors/user";
-import { unsubscribeFromAlert } from "metabase/alert/alert";
+import { deleteAlert, unsubscribeFromAlert } from "metabase/alert/alert";
 import { AM_PM_OPTIONS, DAY_OF_WEEK_OPTIONS, HOUR_OPTIONS } from "metabase/components/SchedulePicker"
+import Icon from "metabase/components/Icon";
 import Modal from "metabase/components/Modal";
 import { CreateAlertModalContent, UpdateAlertModalContent } from "metabase/query_builder/components/AlertModals";
 import _ from "underscore"
-import Icon from "metabase/components/Icon";
+import cx from "classnames";
 
 @connect((state) => ({ questionAlerts: getQuestionAlerts(state), user: getUser(state) }), null)
 export class AlertListPopoverContent extends Component {
     state = {
-        adding: false
+        adding: false,
+        ownAlertRemovedAsNonAdmin: false
     }
 
     onAdd = () => {
@@ -24,9 +26,13 @@ export class AlertListPopoverContent extends Component {
         this.setState({ adding: false })
     }
 
+    onRemovedOwnAlert = () => {
+        this.setState( { ownAlertRemovedAsNonAdmin: true })
+    }
+
     render() {
-        const { questionAlerts, setMenuFreeze, user } = this.props;
-        const { adding } = this.state
+        const { questionAlerts, setMenuFreeze, user,  } = this.props;
+        const { adding, ownAlertRemovedAsNonAdmin } = this.state
 
         // user's own alert should be shown first if it exists
         const sortedQuestionAlerts = _.sortBy(questionAlerts, (alert) => alert.creator.id !== user.id)
@@ -34,8 +40,13 @@ export class AlertListPopoverContent extends Component {
         return (
             <div className="p2" style={{ minWidth: 340 }}>
                 <ul>
+                    { ownAlertRemovedAsNonAdmin && <UnsubscribedListItem /> }
                     { Object.values(sortedQuestionAlerts).map((alert) =>
-                        <AlertListItem alert={alert} setMenuFreeze={setMenuFreeze} />)
+                        <AlertListItem
+                            alert={alert}
+                            setMenuFreeze={setMenuFreeze}
+                            onRemovedOwnAlert={this.onRemovedOwnAlert}
+                        />)
                     }
                     <li>
                         <a className="link" onClick={this.onAdd}>
@@ -51,11 +62,13 @@ export class AlertListPopoverContent extends Component {
     }
 }
 
-@connect((state) => ({ user: getUser(state) }), { unsubscribeFromAlert })
+@connect((state) => ({ user: getUser(state) }), { unsubscribeFromAlert, deleteAlert })
 export class AlertListItem extends Component {
     props: {
         alert: any,
-        setMenuFreeze: (boolean) => void
+        user: any,
+        setMenuFreeze: (boolean) => void,
+        onRemovedOwnAlert: (boolean) => void
     }
 
     state = {
@@ -64,8 +77,21 @@ export class AlertListItem extends Component {
     }
 
     onUnsubscribe = async () => {
-        await this.props.unsubscribeFromAlert(this.props.alert)
-        this.setState({ unsubscribed: true })
+        const { user, alert, deleteAlert, onRemovedOwnAlert } = this.props
+
+        const isAdmin = user.is_superuser
+        const isCurrentUser = alert.creator.id === user.id
+
+        if (isCurrentUser && !isAdmin) {
+            // for non-admins, unsubscribing from your own alert means removing it
+            await deleteAlert(alert.id)
+            // it gets cleared from the list immediately so we have to add the "unsubscribed"
+            // list item in the parent container
+            onRemovedOwnAlert()
+        } else {
+            await this.props.unsubscribeFromAlert(alert)
+            this.setState({ unsubscribed: true })
+        }
     }
 
     onEdit = () => {
@@ -91,11 +117,11 @@ export class AlertListItem extends Component {
         const slackEnabled = slackChannel && slackChannel.enabled
 
         if (unsubscribed) {
-            return <li>Okay, you're unsubscribed</li>
+            return <UnsubscribedListItem />
         }
 
         return (
-            <li>
+            <li className={cx({ "bg-grey-0": isCurrentUser && !isAdmin })}>
                 <div className="flex">
                     <div className="flex-full"><AlertCreatorTitle alert={alert} user={user} /></div>
                     <div>
@@ -128,6 +154,8 @@ export class AlertListItem extends Component {
     }
 }
 
+export const UnsubscribedListItem = () =>
+    <li>Okay, you're unsubscribed<hr /></li>
 
 export class AlertScheduleText extends Component {
     getScheduleText = () => {

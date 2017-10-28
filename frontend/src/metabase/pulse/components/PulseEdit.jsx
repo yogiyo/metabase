@@ -136,7 +136,7 @@ export default class PulseEdit extends Component {
                                     >
                                         <DeleteModalWithConfirm
                                             objectType="pulse"
-                                            objectName={pulse.name}
+                                            title={"Delete \"" + pulse.name + "\"?"}
                                             confirmItems={this.getConfirmItems()}
                                             onClose={() => this.refs["deleteModal"+pulse.id].close()}
                                             onDelete={this.delete}

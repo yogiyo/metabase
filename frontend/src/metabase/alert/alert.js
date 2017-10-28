@@ -1,4 +1,5 @@
 import React from "react";
+import _ from "underscore"
 import { handleActions } from "redux-actions";
 import { combineReducers } from "redux";
 import { addUndo, createUndo } from "metabase/redux/undo";
@@ -6,6 +7,7 @@ import { addUndo, createUndo } from "metabase/redux/undo";
 import { AlertApi } from "metabase/services";
 import { RestfulRequest } from "metabase/lib/request";
 import { getUser } from "metabase/selectors/user";
+import { deletePulse } from "metabase/pulse/actions";
 
 export const FETCH_ALL_ALERTS = 'metabase/alerts/FETCH_ALL_ALERTS'
 const fetchAllAlertsRequest = new RestfulRequest({
@@ -84,11 +86,25 @@ export const unsubscribeFromAlert = (alert) => {
     }
 }
 
+// TODO: the D of CRUD isn't yet supported by RestfulRequest – that could deserve some love
+export const DELETE_ALERT = 'metabase/alerts/DELETE_ALERT'
+export const deleteAlert = (alertId) => {
+    return async (dispatch, getState) => {
+        await dispatch(deletePulse(alertId));
+        dispatch.action(DELETE_ALERT, alertId)
+    }
+}
+
 const alerts = handleActions({
     ...fetchAllAlertsRequest.getReducers(),
     ...fetchAlertsForQuestionRequest.getReducers(),
     ...createAlertRequest.getReducers(),
-    ...updateAlertRequest.getReducers()
+    ...updateAlertRequest.getReducers(),
+    // removal from the result dictionary
+    [DELETE_ALERT]: (state, { payload: alertId }) => ({
+        ...state,
+        result: _.omit(state.result || {}, alertId)
+    })
 }, []);
 
 export default combineReducers({
