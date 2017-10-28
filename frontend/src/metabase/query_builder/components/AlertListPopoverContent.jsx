@@ -3,17 +3,19 @@ import { connect } from "react-redux";
 import { getQuestionAlerts } from "metabase/query_builder/selectors";
 import { getUser } from "metabase/selectors/user";
 import { unsubscribeFromAlert } from "metabase/alert/alert";
+import Modal from "metabase/components/Modal";
+import { UpdateAlertModalContent } from "metabase/query_builder/components/AlertModals";
 
 @connect((state) => ({ questionAlerts: getQuestionAlerts(state) }), null)
 export class AlertListPopoverContent extends Component {
     render() {
-        const { questionAlerts } = this.props;
+        const { questionAlerts, setMenuFreeze } = this.props;
 
         return (
             <div className="p2" style={{ minWidth: 340 }}>
                 <ul>
                     { Object.values(questionAlerts).map((alert) =>
-                        <AlertListItem alert={alert} />)
+                        <AlertListItem alert={alert} setMenuFreeze={setMenuFreeze} />)
                     }
                 </ul>
             </div>
@@ -23,8 +25,14 @@ export class AlertListPopoverContent extends Component {
 
 @connect((state) => ({ user: getUser(state) }), { unsubscribeFromAlert })
 export class AlertListItem extends Component {
+    props: {
+        alert: any,
+        setMenuFreeze: (boolean) => void
+    }
+    
     state = {
-        unsubscribed: false
+        unsubscribed: false,
+        editing: false
     }
 
     onUnsubscribe = async () => {
@@ -32,15 +40,21 @@ export class AlertListItem extends Component {
         this.setState({ unsubscribed: true })
     }
 
-    onEdit() {
-        // wtf how to switch to edit dialog from here
+    onEdit = () => {
+        this.props.setMenuFreeze(true)
+        this.setState({ editing: true })
+    }
+
+    onEndEditing = () => {
+        this.props.setMenuFreeze(false)
+        this.setState({ editing: false })
     }
 
     render() {
         const { user, alert } = this.props
-        const { unsubscribed } = this.state
+        const { editing, unsubscribed } = this.state
 
-        const isAdmin = alert.is_superuser
+        const isAdmin = user.is_superuser
         const isCurrentUser = alert.creator.id === user.id
 
         if (unsubscribed) {
@@ -52,7 +66,10 @@ export class AlertListItem extends Component {
                 <AlertCreatorTitle alert={alert} user={user} />
                 { !isAdmin && <a onClick={this.onUnsubscribe}>Unsubscribe</a> }
                 { (isAdmin || isCurrentUser) && <a onClick={this.onEdit}>Edit</a> }
-                {/*{ JSON.stringify(alert) }*/}
+
+                { editing && <Modal full onClose={this.onEndEditing}>
+                    <UpdateAlertModalContent alert={alert} onClose={this.onEndEditing} />
+                </Modal> }
             </li>
         )
     }

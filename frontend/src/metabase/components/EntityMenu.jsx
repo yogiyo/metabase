@@ -26,12 +26,19 @@ class EntityMenu extends Component {
 
     state = {
         open: false,
+        freezeMenu: false,
         menuItemContent: null
     }
 
     toggleMenu = () => {
+        if (this.state.freezeMenu) return;
+
         const open = !this.state.open
         this.setState({ open, menuItemContent: null })
+    }
+
+    setFreezeMenu = (freezeMenu) => {
+        this.setState({ freezeMenu })
     }
 
     replaceMenuWithItemContent = (menuItemContent) => {
@@ -84,7 +91,7 @@ class EntityMenu extends Component {
                                                                 <EntityMenuItem
                                                                     icon={item.icon}
                                                                     title={item.title}
-                                                                    action={() => this.replaceMenuWithItemContent(item.content(this.toggleMenu))}
+                                                                    action={() => this.replaceMenuWithItemContent(item.content(this.toggleMenu, this.setFreezeMenu))}
                                                                 />
                                                             </li>
                                                         )

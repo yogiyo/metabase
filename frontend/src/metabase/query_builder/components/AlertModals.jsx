@@ -133,32 +133,54 @@ export class AlertEducationalScreen extends Component {
     }
 }
 
-@connect(null, { updateAlert })
+@connect((state) => ({ isAdmin: getUserIsAdmin(state) }), { updateAlert })
 export class UpdateAlertModalContent extends Component {
     props: {
+        alert: any,
+        updateAlert: (any) => void,
         onClose: boolean
     }
-    // contains the deletion button
-    // ModalContent, parent uses ModalWithTrigger
 
-    onUpdateAlert = (alert) => {
+    constructor(props) {
+        super()
+        this.state = {
+            modifiedAlert: props.alert
+        }
+    }
+
+    onAlertChange = (modifiedAlert) => this.setState({ modifiedAlert })
+
+    onUpdateAlert = async () => {
         const { updateAlert, onClose } = this.props
-
-        updateAlert(alert)
+        const { modifiedAlert } = this.state
+        await updateAlert(modifiedAlert)
+        // should close be triggered manually like this
+        // but the creation notification would appear automatically ...?
+        // OR should the modal visibility be part of QB redux state
+        // (maybe check how other modals are implemented)
         onClose()
     }
 
     render() {
         const { onClose } = this.props
+        const { modifiedAlert } = this.state
 
+        // TODO: Remove PulseEdit css hack
         return (
             <ModalContent
-                title={<AlertModalTitle text="Edit your alert" />}
                 onClose={onClose}
+                onClick={ (e) => { console.log('moikkelis'), e.stopPropagation(); } }
             >
-                <AlertEditForm onDone={this.onCreateAlert} />
-                <Button className="mr2" onClick={onClose}>Cancel</Button>
-                <Button primary onClick={this.onUpdateAlert}>Save changes</Button>
+                <div className="PulseEdit ml-auto mr-auto" style={{maxWidth: "550px"}}>
+                    <AlertModalTitle text="Edit your alert" />
+                    <AlertEditForm
+                        alert={modifiedAlert}
+                        onAlertChange={this.onAlertChange}
+                        onDone={this.onUpdateAlert}
+                    />
+                    <Button onClick={onClose}>Cancel</Button>
+                    <Button primary onClick={this.onUpdateAlert}>Done</Button>
+                </div>
             </ModalContent>
         )
     }
