@@ -3,9 +3,11 @@ import { connect } from "react-redux";
 import { getQuestionAlerts } from "metabase/query_builder/selectors";
 import { getUser } from "metabase/selectors/user";
 import { unsubscribeFromAlert } from "metabase/alert/alert";
+import { AM_PM_OPTIONS, DAY_OF_WEEK_OPTIONS, HOUR_OPTIONS } from "metabase/components/SchedulePicker"
 import Modal from "metabase/components/Modal";
 import { CreateAlertModalContent, UpdateAlertModalContent } from "metabase/query_builder/components/AlertModals";
 import _ from "underscore"
+import Icon from "metabase/components/Icon";
 
 @connect((state) => ({ questionAlerts: getQuestionAlerts(state), user: getUser(state) }), null)
 export class AlertListPopoverContent extends Component {
@@ -92,6 +94,9 @@ export class AlertListItem extends Component {
                 <AlertCreatorTitle alert={alert} user={user} />
                 { !isAdmin && <a onClick={this.onUnsubscribe}>Unsubscribe</a> }
                 { (isAdmin || isCurrentUser) && <a onClick={this.onEdit}>Edit</a> }
+                <ul>
+                    <Icon name="clock" /> <AlertScheduleText schedule={alert.channels[0]} verbose={!isAdmin} />
+                </ul>
                 <hr />
 
                 { editing && <Modal full onClose={this.onEndEditing}>
@@ -99,6 +104,51 @@ export class AlertListItem extends Component {
                 </Modal> }
             </li>
         )
+    }
+}
+
+
+export class AlertScheduleText extends Component {
+
+    getScheduleText = () => {
+        const { schedule, verbose } = this.props
+        const scheduleType = schedule.schedule_type
+
+        // these are pretty much copypasted from SchedulePicker
+        if (scheduleType === "hourly") {
+            return verbose ? "hourly" : "Hourly";
+        } else if (scheduleType === "daily") {
+            const hourOfDay = schedule.schedule_hour;
+            const hour = _.find(HOUR_OPTIONS, (opt) => opt.value === hourOfDay % 12).name;
+            const amPm = _.find(AM_PM_OPTIONS, (opt) => opt.value === (hourOfDay >= 12 ? 1 : 0)).name;
+
+            return `${verbose ? "daily at " : "Daily, "} ${hour} ${amPm}`
+        } else if (scheduleType === "weekly") {
+            console.log(schedule)
+            const hourOfDay = schedule.schedule_hour;
+            const day = _.find(DAY_OF_WEEK_OPTIONS, (o) => o.value === schedule.schedule_day).name
+            const hour = _.find(HOUR_OPTIONS, (opt) => opt.value === (hourOfDay % 12)).name;
+            const amPm = _.find(AM_PM_OPTIONS, (opt) => opt.value === (hourOfDay >= 12 ? 1 : 0)).name;
+
+            if (verbose) {
+                return `weekly on ${day}s at ${hour} ${amPm}`
+            } else {
+                // omit the minute part of time
+                return `${day}s, ${hour.substr(0, hour.indexOf(':'))} ${amPm}`
+            }
+        }
+    }
+
+    render() {
+        const { verbose } = this.props
+
+        const scheduleText = this.getScheduleText()
+
+        if (verbose) {
+            return <span>Checking <b>{ scheduleText }</b></span>
+        } else {
+            return <span>{ scheduleText }</span>
+        }
     }
 }
 
