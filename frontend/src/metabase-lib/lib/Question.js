@@ -47,6 +47,7 @@ import type { TableId } from "metabase/meta/types/Table";
 import type { DatabaseId } from "metabase/meta/types/Database";
 import * as Urls from "metabase/lib/urls";
 import Mode from "metabase-lib/lib/Mode";
+import { ALERT_TYPE_PROGRESS_BAR_GOAL, ALERT_TYPE_ROWS, ALERT_TYPE_TIMESERIES_GOAL } from "metabase-lib/lib/Alert";
 
 /**
  * This is a wrapper around a question/card object, which may contain one or more Query objects
@@ -209,6 +210,23 @@ export default class Question {
 
     canWrite(): boolean {
         return this._card && this._card.can_write;
+    }
+
+    alertType(): ?AlertType {
+        const mode = this.mode()
+        const display = this.display()
+
+        if (mode.name() === "segment") {
+            return ALERT_TYPE_ROWS
+        } else if (display === "progress") {
+            return ALERT_TYPE_PROGRESS_BAR_GOAL
+        } else if (mode.name() === "timeseries") {
+            if (this.card().visualization_settings["graph.show_goal"]) {
+                return ALERT_TYPE_TIMESERIES_GOAL
+            }
+        }
+
+        return null
     }
 
     /**
