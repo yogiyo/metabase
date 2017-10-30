@@ -294,7 +294,7 @@ export class AlertEditForm extends Component {
     }
 }
 
-const AlertGoalToggles = ({ alertType, alert, onAlertChange }) => {
+export const AlertGoalToggles = ({ alertType, alert, onAlertChange }) => {
     const isTimeseries = alertType === ALERT_TYPE_TIMESERIES_GOAL
     const isProgress = alertType === ALERT_TYPE_PROGRESS_BAR_GOAL
 
@@ -326,13 +326,13 @@ const AlertGoalToggles = ({ alertType, alert, onAlertChange }) => {
     )
 }
 
-const AlertAboveGoalToggle = (props) =>
+export const AlertAboveGoalToggle = (props) =>
     <AlertSettingToggle {...props} setting="alert_above_goal" />
 
-const AlertFirstOnlyToggle = (props) =>
+export const AlertFirstOnlyToggle = (props) =>
     <AlertSettingToggle {...props} setting="alert_first_only" />
 
-const AlertSettingToggle = ({ alert, onAlertChange, title, trueText, falseText, setting }) =>
+export const AlertSettingToggle = ({ alert, onAlertChange, title, trueText, falseText, setting }) =>
     <div className="mb2">
         <h3>{title}</h3>
         <Radio
@@ -423,7 +423,7 @@ export class AlertEditChannels extends Component {
 }
 
 // TODO: Not sure how to translate text with formatting properly
-const RawDataAlertTip = () =>
+export const RawDataAlertTip = () =>
     <div className="border-row-divider p3">
         <b>Tip:</b> This kind of alert is most useful when your saved question doesn’t <em>usually</em> return any results, but you want to know when it does.
     </div>

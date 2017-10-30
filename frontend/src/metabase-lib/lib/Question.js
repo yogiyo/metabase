@@ -36,7 +36,7 @@ import type {
 } from "metabase/meta/types/Parameter";
 import type {
     DatasetQuery,
-    Card as CardObject
+    Card as CardObject, VisualizationSettings
 } from "metabase/meta/types/Card";
 
 import { MetabaseApi, CardApi } from "metabase/services";
@@ -196,6 +196,13 @@ export default class Question {
     }
     setDisplay(display) {
         return this.setCard(assoc(this.card(), "display", display));
+    }
+
+    visualizationSettings(): VisualizationSettings {
+        return this._card && this._card.visualization_settings;
+    }
+    setVisualizationSettings(settings: VisualizationSettings) {
+        return this.setCard(assoc(this.card(), "visualization_settings", settings));
     }
 
     isEmpty(): boolean {
