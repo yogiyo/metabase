@@ -40,7 +40,7 @@
      (with-redefs [metabase.pulse/send-notifications! identity]
        ~@body)))
 
-;; Basic test, 1 card, 1 receipient
+;; Basic test, 1 card, 1 recipient
 (expect
   [true
    {:subject "Pulse: Pulse Name"
@@ -66,7 +66,7 @@
         (email-body? (first (:message result)))
         (attachment? (second (:message result)))]))))
 
-;; Pulse should be sent to two receipients
+;; Pulse should be sent to two recipients
 (expect
   [true
    {:subject "Pulse: Pulse Name"

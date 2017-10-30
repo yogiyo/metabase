@@ -261,6 +261,14 @@
                                :skip_if_empty     false}))
       (update :channels remove-extra-channels-fields)))
 
+(defn- basic-alert-query []
+  {:name "Foo"
+   :dataset_query {:database (data/id)
+                   :type     :query
+                   :query {:source_table (data/id :checkins)
+                           :aggregation [["count"]]
+                           :breakout [["datetime-field" (data/id :checkins :date) "hour"]]}}})
+
 (expect
   [{:alert_condition "rows",
     :id true
@@ -288,12 +296,7 @@
       :id true,
       :created_at true}]}]
   (data/with-db (data/get-or-create-database! defs/test-data)
-    (tt/with-temp* [Card                 [{card-id :id}    {:name "Foo"
-                                                            :dataset_query {:database (data/id)
-                                                                            :type     :query
-                                                                            :query {:source_table (data/id :checkins)
-                                                                                    :aggregation [["count"]]
-                                                                                    :breakout [["datetime-field" (data/id :checkins :date) "hour"]]}}}]
+    (tt/with-temp* [Card                 [{card-id :id}  (basic-alert-query)]
                     Pulse                [{pulse-id :id} {:name              "Alert Name"
                                                           :alert_condition   "rows"
                                                           :alert_description "Alert when above goal"
@@ -306,3 +309,101 @@
                     PulseChannelRecipient [_             {:user_id          (user->id :rasta)
                                                           :pulse_channel_id pc-id}]]
       (tu/boolean-ids-and-timestamps ((user->client :rasta) :get 200 (format "alert/question/%d" card-id))))))
+
+(defn- recipient-emails [results]
+  (->> results
+       first
+       :channels
+       first
+       :recipients
+       (map :email)
+       set))
+
+;; Alert has two recipients, remove one
+(expect
+  [#{"crowberto@metabase.com" "rasta@metabase.com"} #{"rasta@metabase.com"}]
+  (data/with-db (data/get-or-create-database! defs/test-data)
+    (tt/with-temp* [Card                 [{card-id :id}  (basic-alert-query)]
+                    Pulse                [{pulse-id :id} {:name              "Alert Name"
+                                                          :alert_condition   "rows"
+                                                          :alert_description "Alert on a thing"
+                                                          :alert_first_only  false}]
+                    PulseCard             [_             {:pulse_id pulse-id
+                                                          :card_id  card-id
+                                                          :position 0}]
+                    PulseChannel          [{pc-id :id}   {:pulse_id pulse-id}]
+                    PulseChannelRecipient [_             {:user_id          (user->id :rasta)
+                                                          :pulse_channel_id pc-id}]
+                    PulseChannelRecipient [_             {:user_id          (user->id :crowberto)
+                                                          :pulse_channel_id pc-id}]]
+
+      [(recipient-emails ((user->client :rasta) :get 200 (format "alert/question/%d" card-id)))
+       (do
+         ((user->client :crowberto) :put 204 (format "alert/%d/unsubscribe" pulse-id))
+         (recipient-emails ((user->client :rasta) :get 200 (format "alert/question/%d" card-id))))])))
+
+;; Testing delete of pulse by it's creator
+(expect
+  [1 nil 0]
+  (data/with-db (data/get-or-create-database! defs/test-data)
+    (tt/with-temp* [Card                 [{card-id :id}  (basic-alert-query)]
+                    Pulse                [{pulse-id :id} {:name              "Alert Name"
+                                                          :alert_condition   "rows"
+                                                          :alert_description "Alert on a thing"
+                                                          :alert_first_only  false
+                                                          :creator_id        (user->id :rasta)}]
+                    PulseCard             [_             {:pulse_id pulse-id
+                                                          :card_id  card-id
+                                                          :position 0}]
+                    PulseChannel          [{pc-id :id}   {:pulse_id pulse-id}]
+                    PulseChannelRecipient [_             {:user_id          (user->id :rasta)
+                                                          :pulse_channel_id pc-id}]]
+
+      [(count ((user->client :rasta) :get 200 (format "alert/question/%d" card-id)))
+       ((user->client :rasta) :delete 204 (format "alert/%d" pulse-id))
+       (count ((user->client :rasta) :get 200 (format "alert/question/%d" card-id)))])))
+
+;; Testing a user can't delete an admin's alert
+(expect
+  [1 nil 0]
+  (data/with-db (data/get-or-create-database! defs/test-data)
+    (tt/with-temp* [Card                 [{card-id :id}  (basic-alert-query)]
+                    Pulse                [{pulse-id :id} {:name              "Alert Name"
+                                                          :alert_condition   "rows"
+                                                          :alert_description "Alert on a thing"
+                                                          :alert_first_only  false
+                                                          :creator_id        (user->id :crowberto)}]
+                    PulseCard             [_             {:pulse_id pulse-id
+                                                          :card_id  card-id
+                                                          :position 0}]
+                    PulseChannel          [{pc-id :id}   {:pulse_id pulse-id}]
+                    PulseChannelRecipient [_             {:user_id          (user->id :rasta)
+                                                          :pulse_channel_id pc-id}]]
+      (let [original-alert-response ((user->client :crowberto) :get 200 (format "alert/question/%d" card-id))]
+
+        ;; A user can't delete an admin's alert
+        ((user->client :rasta) :delete 403 (format "alert/%d" pulse-id))
+
+        [(count original-alert-response)
+         ((user->client :crowberto) :delete 204 (format "alert/%d" pulse-id))
+         (count ((user->client :rasta) :get 200 (format "alert/question/%d" card-id)))]))))
+
+;; An admin can delete a user's alert
+(expect
+  [1 nil 0]
+  (data/with-db (data/get-or-create-database! defs/test-data)
+    (tt/with-temp* [Card                 [{card-id :id}  (basic-alert-query)]
+                    Pulse                [{pulse-id :id} {:name              "Alert Name"
+                                                          :alert_condition   "rows"
+                                                          :alert_description "Alert on a thing"
+                                                          :alert_first_only  false
+                                                          :creator_id        (user->id :rasta)}]
+                    PulseCard             [_             {:pulse_id pulse-id
+                                                          :card_id  card-id
+                                                          :position 0}]
+                    PulseChannel          [{pc-id :id}   {:pulse_id pulse-id}]
+                    PulseChannelRecipient [_             {:user_id          (user->id :rasta)
+                                                          :pulse_channel_id pc-id}]]
+      [(count ((user->client :rasta) :get 200 (format "alert/question/%d" card-id)))
+       ((user->client :crowberto) :delete 204 (format "alert/%d" pulse-id))
+       (count ((user->client :rasta) :get 200 (format "alert/question/%d" card-id)))])))

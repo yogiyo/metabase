@@ -24,7 +24,7 @@
            java.util.TimeZone))
 
 (api/defendpoint GET "/"
-  "Fetch all `Alert`"
+  "Fetch all `Alerts`"
   []
   (for [alert (pulse/retrieve-alerts)
         :let  [can-read?  (mi/can-read? alert)
@@ -88,5 +88,21 @@
       only-alert-keys
       (assoc :id id :card (u/get-id card) :channels channels)
       pulse/update-alert!))
+
+(api/defendpoint PUT "/:id/unsubscribe"
+  [id]
+  (assert (integer? id))
+  (api/read-check Pulse id)
+  (pulse/unsubscribe-from-alert id api/*current-user-id*)
+  api/generic-204-no-content)
+
+(api/defendpoint DELETE "/:id"
+  [id]
+  (api/let-404 [pulse (pulse/retrieve-alert id)]
+    (api/check-403
+     (or (= api/*current-user-id* (:creator_id pulse))
+          api/*is-superuser?*))
+    (db/delete! Pulse :id id)
+    api/generic-204-no-content))
 
 (api/define-routes)

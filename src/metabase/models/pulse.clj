@@ -1,5 +1,6 @@
 (ns metabase.models.pulse
   (:require [clojure.set :as set]
+            [clojure.tools.logging :as log]
             [medley.core :as m]
             [metabase
              [db :as mdb]
@@ -162,7 +163,6 @@
                               [:or [:= :p.creator_id user-id]
                                [:= :pcr.user_id user-id]]]})))
 
-
 ;;; ------------------------------------------------------------ Other Persistence Functions ------------------------------------------------------------
 
 (defn update-pulse-cards!
@@ -304,3 +304,20 @@
   ;; fetch the fully updated pulse and return it (and fire off an event)
   (->> (retrieve-alert id)
        (events/publish-event! :pulse-update)))
+
+(defn unsubscribe-from-alert
+  "Removes `USER-ID` from `PULSE-ID`"
+  [pulse-id user-id]
+  (let [[result] (db/execute! {:delete-from PulseChannelRecipient
+                               :where [:= :id {:select [:pcr.id]
+                                               :from [[PulseChannelRecipient :pcr]]
+                                               :join [[PulseChannel :pchan] [:= :pchan.id :pcr.pulse_channel_id]
+                                                      [Pulse :p] [:= :p.id :pchan.pulse_id]]
+                                               :where [:and
+                                                       [:= :p.id pulse-id]
+                                                       [:not= :p.alert_condition nil]
+                                                       [:= :pcr.user_id user-id]]}]})]
+    (when (zero? result)
+      (log/warnf "Failed to remove user-id '%s' from pulse-id '%s'" user-id pulse-id))
+
+    result))
