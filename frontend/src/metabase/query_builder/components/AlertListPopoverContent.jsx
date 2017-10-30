@@ -125,8 +125,8 @@ export class AlertListItem extends Component {
                 <div className="flex">
                     <div className="flex-full"><AlertCreatorTitle alert={alert} user={user} /></div>
                     <div>
-                        { !isAdmin && <a className="link" onClick={this.onUnsubscribe}>Unsubscribe</a> }
-                        { (isAdmin || isCurrentUser) && <span> <a className="link" onClick={this.onEdit}>Edit</a></span> }
+                        { !isAdmin && <a className="link" onClick={this.onUnsubscribe}>{jt`Unsubscribe`}</a> }
+                        { (isAdmin || isCurrentUser) && <span> <a className="link" onClick={this.onEdit}>{jt`Edit`}</a></span> }
                     </div>
                 </div>
                 <ul className="flex">
@@ -155,7 +155,7 @@ export class AlertListItem extends Component {
 }
 
 export const UnsubscribedListItem = () =>
-    <li>Okay, you're unsubscribed<hr /></li>
+    <li>{jt`Okay, you're unsubscribed`}<hr /></li>
 
 export class AlertScheduleText extends Component {
     getScheduleText = () => {
@@ -208,8 +208,8 @@ export class AlertCreatorTitle extends Component {
         const isCurrentUser = alert.creator.id === user.id
         const creator = alert.creator.id === user.id ? "You" : alert.creator.first_name
         const text = (!isCurrentUser && !isAdmin)
-            ? `You're receiving ${creator}'s alerts`
-            : `${creator} set up an alert`
+            ? t`You're receiving ${creator}'s alerts`
+            : t`${creator} set up an alert`
 
         return <h3>{text}</h3>
     }

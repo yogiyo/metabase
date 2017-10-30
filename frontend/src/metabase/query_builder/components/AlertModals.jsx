@@ -97,7 +97,7 @@ export class CreateAlertModalContent extends Component {
                 onClose={onClose}
             >
                 <div className="PulseEdit ml-auto mr-auto mb4" style={{maxWidth: "550px"}}>
-                    <AlertModalTitle text="Let's set up your alert" />
+                    <AlertModalTitle text={t`Let's set up your alert`} />
                     <AlertEditForm
                         alertType={question.alertType()}
                         alert={alert}
@@ -179,7 +179,7 @@ export class UpdateAlertModalContent extends Component {
                 onClose={onClose}
             >
                 <div className="PulseEdit ml-auto mr-auto mb4" style={{maxWidth: "550px"}}>
-                    <AlertModalTitle text="Edit your alert" />
+                    <AlertModalTitle text={t`Edit your alert`} />
                     <AlertEditForm
                         alertType={question.alertType()}
                         alert={modifiedAlert}
@@ -202,11 +202,11 @@ export class DeleteAlertSection extends Component {
         // same as in PulseEdit but with some changes to copy
         return this.props.alert.channels.map(c =>
             c.channel_type === "email" ?
-                <span>This alert will no longer be emailed to <strong>{c.recipients.length} {inflect("address", c.recipients.length)}</strong>.</span>
+                <span>{jt`This alert will no longer be emailed to ${<strong>{c.recipients.length} {inflect("address", c.recipients.length)}</strong>}.`}</span>
                 : c.channel_type === "slack" ?
-                <span>Slack channel <strong>{c.details && c.details.channel}</strong> will no longer get this alert.</span>
+                <span>{jt`Slack channel ${<strong>{c.details && c.details.channel}</strong>} will no longer get this alert.`}</span>
                 :
-                <span>Channel <strong>{c.channel_type}</strong> will no longer receive this alert.</span>
+                <span>{jt`Channel ${<strong>{c.channel_type}</strong>} will no longer receive this alert.`}</span>
         );
     }
 
@@ -215,11 +215,11 @@ export class DeleteAlertSection extends Component {
 
         return (
             <div className="DangerZone mb2 p3 rounded bordered relative">
-                <h3 className="text-error absolute top bg-white px1" style={{ marginTop: "-12px" }}>Danger Zone</h3>
+                <h3 className="text-error absolute top bg-white px1" style={{ marginTop: "-12px" }}>{jt`Danger Zone`}</h3>
                 <div className="ml1">
-                    <h4 className="text-bold mb1">Delete this alert</h4>
+                    <h4 className="text-bold mb1">{jt`Delete this alert`}</h4>
                     <div className="flex">
-                        <p className="h4 pr2">Stop delivery and delete this alert. There's no undo, so be careful.</p>
+                        <p className="h4 pr2">{jt`Stop delivery and delete this alert. There's no undo, so be careful.`}</p>
                         <ModalWithTrigger
                             ref={(ref) => this.deleteModal = ref}
                             triggerClasses="Button Button--danger flex-align-right flex-no-shrink"
@@ -227,7 +227,7 @@ export class DeleteAlertSection extends Component {
                         >
                             <DeleteModalWithConfirm
                                 objectType="alert"
-                                title="Delete this alert?"
+                                title={t`Delete this alert?`}
                                 confirmItems={this.getConfirmItems()}
                                 onClose={() => this.deleteModal.close()}
                                 onDelete={onDeleteAlert}
@@ -308,19 +308,19 @@ const AlertGoalToggles = ({ alertType, alert, onAlertChange }) => {
             <AlertAboveGoalToggle
                 alert={alert}
                 onAlertChange={onAlertChange}
-                title={isTimeseries ? "Alert me when the line…" : "Alert me when the progress bar…"}
-                trueText={isTimeseries ? "Goes above the goal line" : "Reaches the goal"}
-                falseText={isTimeseries ? "Goes below the goal line" : "Goes below the goal"}
+                title={isTimeseries ? t`Alert me when the line…` : t`Alert me when the progress bar…`}
+                trueText={isTimeseries ? t`Goes above the goal line` : t`Reaches the goal`}
+                falseText={isTimeseries ? t`Goes below the goal line` : t`Goes below the goal`}
             />
             <AlertFirstOnlyToggle
                 alert={alert}
                 onAlertChange={onAlertChange}
                 title={isTimeseries
-                    ? "The first time it crosses, or every time?"
-                    : "The first time it reaches the goal, or every time?"
+                    ? t`The first time it crosses, or every time?`
+                    : t`The first time it reaches the goal, or every time?`
                 }
-                trueText={"The first time"}
-                falseText={"Every time" }
+                trueText={t`The first time`}
+                falseText={t`Every time` }
             />
         </div>
     )
@@ -403,7 +403,7 @@ export class AlertEditChannels extends Component {
         const { alert, user, userList, formInput } = this.props;
         return (
             <div>
-                <h3>Where do you want to send these alerts?</h3>
+                <h3>{jt`Where do you want to send these alerts?`}</h3>
                 <div className="mb2">
                     <PulseEditChannels
                         pulse={alert}
@@ -414,7 +414,7 @@ export class AlertEditChannels extends Component {
                         userList={userList}
                         setPulse={this.onSetPulse}
                         hideSchedulePicker={true}
-                        emailRecipientText={"Email alerts to:"}
+                        emailRecipientText={t`Email alerts to:`}
                      />
                 </div>
             </div>
@@ -422,6 +422,7 @@ export class AlertEditChannels extends Component {
     }
 }
 
+// TODO: Not sure how to translate text with formatting properly
 const RawDataAlertTip = () =>
     <div className="border-row-divider p3">
         <b>Tip:</b> This kind of alert is most useful when your saved question doesn’t <em>usually</em> return any results, but you want to know when it does.

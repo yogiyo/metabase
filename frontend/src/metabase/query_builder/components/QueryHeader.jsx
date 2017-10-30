@@ -441,12 +441,12 @@ export default class QueryHeader extends Component {
 
         if (!isNew && card.can_write && question.alertType() !== null) {
             const createAlertItem = {
-                title: "Get alerts about this",
+                title: t`Get alerts about this`,
                 icon: "alert",
                 action: () => this.setState({ modal: "create-alert" })
             }
             const updateAlertItem = {
-                title: "Alerts are on",
+                title: t`Alerts are on`,
                 icon: "alert",
                 content: (toggleMenu, setMenuFreeze) => <AlertListPopoverContent onCancel={toggleMenu} setMenuFreeze={setMenuFreeze} />
             }
