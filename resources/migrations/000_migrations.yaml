@@ -3972,26 +3972,3 @@ databaseChangeLog:
                   remarks: 'For a goal condition, alert when above the goal'
                   constraints:
                     nullable: true
-
-  - changeSet:
-      id: 70
-      author: senior
-      comment: 'Added 0.27.0'
-      changes:
-        - addColumn:
-            tableName: pulse_card
-            columns:
-              - column:
-                  name: include_csv
-                  type: boolean
-                  defaultValueBoolean: false
-                  remarks: 'True if a CSV of the data should be included for this pulse card'
-                  constraints:
-                    nullable: false
-              - column:
-                  name: include_xls
-                  type: boolean
-                  defaultValueBoolean: false
-                  remarks: 'True if a XLS of the data should be included for this pulse card'
-                  constraints:
-                    nullable: false

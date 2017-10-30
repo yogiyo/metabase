@@ -49,9 +49,7 @@
    :name          "Lodi Dodi"
    :cards         [{:name        "Test Card"
                     :description nil
-                    :display     :table
-                    :include_csv false
-                    :include_xls false}]
+                    :display     :table}]
    :channels      [(merge pulse-channel-defaults
                           {:schedule_type  :daily
                            :schedule_hour  15
@@ -88,7 +86,7 @@
                   Card  [{card-id-2 :id} {:name "card2"}]
                   Card  [{card-id-3 :id} {:name "card3"}]]
     (let [upd-cards! (fn [cards]
-                       (update-pulse-cards! {:id pulse-id} (map create-card-ref cards))
+                       (update-pulse-cards! {:id pulse-id} cards)
                        (set (for [card-id (db/select-field :card_id PulseCard, :pulse_id pulse-id)]
                               (db/select-one-field :name Card, :id card-id))))]
       [(upd-cards! [])
@@ -128,14 +126,12 @@
                            :recipients     [{:email "foo@bar.com"}]})]
    :cards         [{:name        "Test Card"
                     :description nil
-                    :display     :table
-                    :include_csv false
-                    :include_xls false}]
+                    :display     :table}]
    :skip_if_empty false}
   (tt/with-temp Card [{:keys [id]} {:name "Test Card"}]
     (create-pulse-then-select! "Booyah!"
                                (user->id :rasta)
-                               [(create-card-ref id)]
+                               [id]
                                [{:channel_type  :email
                                  :schedule_type :daily
                                  :schedule_hour 18
@@ -155,14 +151,10 @@
    :name          "We like to party"
    :cards         [{:name        "Bar Card"
                     :description nil
-                    :display     :bar
-                    :include_csv false
-                    :include_xls false}
+                    :display     :bar}
                    {:name        "Test Card"
                     :description nil
-                    :display     :table
-                    :include_csv false
-                    :include_xls false}]
+                    :display     :table}]
    :channels      [(merge pulse-channel-defaults
                           {:schedule_type  :daily
                            :schedule_hour  18
@@ -176,7 +168,7 @@
     (update-pulse-then-select! {:id             pulse-id
                                 :name           "We like to party"
                                 :creator_id     (user->id :crowberto)
-                                :cards          (mapv create-card-ref [card-id-2 card-id-1])
+                                :cards          [card-id-2 card-id-1]
                                 :channels       [{:channel_type  :email
                                                   :schedule_type :daily
                                                   :schedule_hour 18
