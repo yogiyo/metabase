@@ -23,7 +23,6 @@ export class AlertListPopoverContent extends Component {
     }
 
     onEndAdding = () => {
-        this.props.setMenuFreeze(false)
         this.setState({ adding: false })
     }
 

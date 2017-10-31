@@ -40,8 +40,7 @@ export default class SaveQuestionModal extends Component {
         tableMetadata: PropTypes.object, // can't be required, sometimes null
         createFn: PropTypes.func.isRequired,
         saveFn: PropTypes.func.isRequired,
-        onClose: PropTypes.func.isRequired,
-        nextStepAfterSaving: PropTypes.string
+        onClose: PropTypes.func.isRequired
     }
 
     componentDidMount() {
@@ -84,7 +83,7 @@ export default class SaveQuestionModal extends Component {
             }
 
             let { details } = this.state;
-            let { card, originalCard, nextStepAfterSaving, createFn, saveFn } = this.props;
+            let { card, originalCard, addToDashboard, createFn, saveFn } = this.props;
 
             card = {
                 ...card,
@@ -101,10 +100,10 @@ export default class SaveQuestionModal extends Component {
             };
 
             if (details.saveType === "create") {
-                this.requestPromise = cancelable(createFn(card, nextStepAfterSaving));
+                this.requestPromise = cancelable(createFn(card, addToDashboard));
             } else if (details.saveType === "overwrite") {
                 card.id = this.props.originalCard.id;
-                this.requestPromise = cancelable(saveFn(card, nextStepAfterSaving));
+                this.requestPromise = cancelable(saveFn(card, addToDashboard));
             }
 
             await this.requestPromise;
@@ -162,7 +161,7 @@ export default class SaveQuestionModal extends Component {
             );
         }
 
-        let title = this.props.nextStepAfterSaving ? "First, save your question" : "Save question";
+        let title = this.props.addToDashboard ? "First, save your question" : "Save question";
 
         return (
             <ModalContent
