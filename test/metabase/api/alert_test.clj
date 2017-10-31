@@ -269,6 +269,7 @@
                            :aggregation [["count"]]
                            :breakout [["datetime-field" (data/id :checkins :date) "hour"]]}}})
 
+;; Basic test covering the /alert/question/:id call for a user
 (expect
   [{:alert_condition "rows",
     :id true
@@ -309,6 +310,41 @@
                     PulseChannelRecipient [_             {:user_id          (user->id :rasta)
                                                           :pulse_channel_id pc-id}]]
       (tu/boolean-ids-and-timestamps ((user->client :rasta) :get 200 (format "alert/question/%d" card-id))))))
+
+;; Non-admin users should not see others alerts, admins see all alerts
+(expect
+  [1 2]
+  (data/with-db (data/get-or-create-database! defs/test-data)
+    (tt/with-temp* [Card                 [{card-id :id}  (basic-alert-query)]
+                    Pulse                [{pulse-id-1 :id} {:name              "Alert Name"
+                                                            :alert_condition   "rows"
+                                                            :alert_description "My rows alert"
+                                                            :alert_first_only  false
+                                                            :alert_above_goal  false
+                                                            :creator_id        (user->id :rasta)}]
+                    PulseCard             [_               {:pulse_id pulse-id-1
+                                                            :card_id  card-id
+                                                            :position 0}]
+                    PulseChannel          [{pc-id-1 :id}   {:pulse_id pulse-id-1}]
+                    PulseChannelRecipient [_               {:user_id          (user->id :rasta)
+                                                            :pulse_channel_id pc-id-1}]
+                    ;; A separate admin created alert
+                    Pulse                [{pulse-id-2 :id} {:name              "Second alert"
+                                                            :alert_condition   "rows"
+                                                            :alert_description "This is a group alert, created by an admin"
+                                                            :alert_first_only  false
+                                                            :alert_above_goal  false
+                                                            :creator_id        (user->id :crowberto)}]
+                    PulseCard             [_               {:pulse_id pulse-id-2
+                                                            :card_id  card-id
+                                                            :position 0}]
+                    PulseChannel          [{pc-id-2 :id}   {:pulse_id pulse-id-2}]
+                    PulseChannelRecipient [_               {:user_id          (user->id :crowberto)
+                                                            :pulse_channel_id pc-id-2}]
+                    PulseChannel          [{pc-id-3 :id}   {:pulse_id     pulse-id-2
+                                                            :channel_type "slack"}]]
+      [(count (tu/boolean-ids-and-timestamps ((user->client :rasta) :get 200 (format "alert/question/%d" card-id))))
+       (count (tu/boolean-ids-and-timestamps ((user->client :crowberto) :get 200 (format "alert/question/%d" card-id))))])))
 
 (defn- recipient-emails [results]
   (->> results

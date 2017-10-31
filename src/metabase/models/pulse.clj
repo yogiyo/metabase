@@ -149,20 +149,31 @@
         remove-alert-fields
         (m/dissoc-in [:details :emails]))))
 
-(defn retrieve-alerts-for-card
+(defn retrieve-user-alerts-for-card
   "Find all alerts for `CARD-ID` that `USER-ID` is set to receive"
   [card-id user-id]
   (map (comp pulse->alert hydrate-pulse #(into (PulseInstance.) %))
-       (db/query {:select    [:p.*]
-                  :from      [[Pulse :p]]
-                  :join      [[PulseCard :pc] [:= :p.id :pc.pulse_id]
-                              [PulseChannel :pchan] [:= :p.id :pc.pulse_id]
-                              [PulseChannelRecipient :pcr] [:= :pchan.id :pcr.pulse_channel_id]]
-                  :where     [:and
-                              [:not= :p.alert_condition nil]
-                              [:= :pc.card_id card-id]
-                              [:or [:= :p.creator_id user-id]
-                               [:= :pcr.user_id user-id]]]})))
+       (db/query {:select [:p.*]
+                  :from   [[Pulse :p]]
+                  :join   [[PulseCard :pc] [:= :p.id :pc.pulse_id]
+                           [PulseChannel :pchan] [:= :pchan.pulse_id :p.id]
+                           [PulseChannelRecipient :pcr] [:= :pchan.id :pcr.pulse_channel_id]]
+                  :where  [:and
+                           [:not= :p.alert_condition nil]
+                           [:= :pc.card_id card-id]
+                           [:or [:= :p.creator_id user-id]
+                            [:= :pcr.user_id user-id]]]})))
+
+(defn retrieve-alerts-for-card
+  "Find all alerts for `CARD-ID`, used for admin users"
+  [card-id]
+  (map (comp pulse->alert hydrate-pulse #(into (PulseInstance.) %))
+       (db/query {:select [:p.*]
+                  :from   [[Pulse :p]]
+                  :join   [[PulseCard :pc] [:= :p.id :pc.pulse_id]]
+                  :where  [:and
+                           [:not= :p.alert_condition nil]
+                           [:= :pc.card_id card-id]]})))
 
 ;;; ------------------------------------------------------------ Other Persistence Functions ------------------------------------------------------------
 
