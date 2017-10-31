@@ -128,7 +128,7 @@ export default class QueryHeader extends Component {
         this.props.clearRequestState({ statePath: ["metadata", "databases"] });
     }
 
-    onCreate(card, addToDash) {
+    onCreate(card, nextStep) {
         // MBQL->NATIVE
         // if we are a native query with an MBQL query definition, remove the old MBQL stuff (happens when going from mbql -> native)
         // if (card.dataset_query.type === "native" && card.dataset_query.query) {
@@ -149,12 +149,12 @@ export default class QueryHeader extends Component {
 
             this.setState({
                 recentlySaved: "created",
-                modal: addToDash ? "add-to-dashboard" : "saved"
+                modal: nextStep || "saved"
             }, this.resetStateOnTimeout);
         });
     }
 
-    onSave(card, addToDash) {
+    onSave(card, nextStep) {
         // MBQL->NATIVE
         // if we are a native query with an MBQL query definition, remove the old MBQL stuff (happens when going from mbql -> native)
         // if (card.dataset_query.type === "native" && card.dataset_query.query) {
@@ -180,7 +180,7 @@ export default class QueryHeader extends Component {
 
             this.setState({
                 recentlySaved: "updated",
-                modal: addToDash ? "add-to-dashboard" : null
+                modal: nextStep || null
             }, this.resetStateOnTimeout);
         });
     }
@@ -252,7 +252,6 @@ export default class QueryHeader extends Component {
                         card={this.props.card}
                         originalCard={this.props.originalCard}
                         tableMetadata={this.props.tableMetadata}
-                        addToDashboard={false}
                         saveFn={this.onSave}
                         createFn={this.onCreate}
                         onClose={() => this.refs.saveModal.toggle()}
@@ -376,7 +375,7 @@ export default class QueryHeader extends Component {
                             card={this.props.card}
                             originalCard={this.props.originalCard}
                             tableMetadata={this.props.tableMetadata}
-                            addToDashboard={true}
+                            nextStepAfterSaving={"add-to-dashboard"}
                             saveFn={this.onSave}
                             createFn={this.onCreate}
                             onClose={() => this.refs.addToDashSaveModal.toggle()}
@@ -439,12 +438,18 @@ export default class QueryHeader extends Component {
             </Tooltip>
         ]);
 
-        if (!isNew && card.can_write && question.alertType() !== null) {
+        if (card.can_write && question.alertType() !== null) {
             const createAlertItem = {
                 title: t`Get alerts about this`,
                 icon: "alert",
                 action: () => this.setState({ modal: "create-alert" })
             }
+            const createAlertAfterSavingQuestionItem = {
+                title: t`Get alerts about this`,
+                icon: "alert",
+                action: () => this.setState({ modal: "save-question-before-create-alert" })
+            }
+
             const updateAlertItem = {
                 title: t`Alerts are on`,
                 icon: "alert",
@@ -455,7 +460,11 @@ export default class QueryHeader extends Component {
                 <div className="mr1" style={{ marginLeft: "-15px" }}>
                     <EntityMenu
                         triggerIcon='burger'
-                        items={[ Object.values(questionAlerts).length > 0 ? updateAlertItem : createAlertItem ]}
+                        items={[
+                            (!isNew && Object.values(questionAlerts).length > 0)
+                                ? updateAlertItem
+                                : (isNew ? createAlertAfterSavingQuestionItem : createAlertItem)
+                        ]}
                     />
                 </div>
             ]);
@@ -500,6 +509,7 @@ export default class QueryHeader extends Component {
                     />
                 </Modal>
 
+
                 <Modal isOpen={this.state.modal === "add-to-dashboard"} onClose={this.onCloseModal}>
                     <AddToDashSelectDashModal
                         card={this.props.card}
@@ -510,6 +520,18 @@ export default class QueryHeader extends Component {
 
                 <Modal full isOpen={this.state.modal === "create-alert"} onClose={this.onCloseModal}>
                     <CreateAlertModalContent onClose={this.onCloseModal} />
+                </Modal>
+
+                <Modal isOpen={this.state.modal === "save-question-before-create-alert"} onClose={this.onCloseModal}>
+                    <SaveQuestionModal
+                        card={this.props.card}
+                        originalCard={this.props.originalCard}
+                        tableMetadata={this.props.tableMetadata}
+                        nextStepAfterSaving={"create-alert"}
+                        saveFn={this.onSave}
+                        createFn={this.onCreate}
+                        onClose={() => this.onCloseModal}
+                    />
                 </Modal>
             </div>
         );

@@ -18,6 +18,7 @@ import type { AlertType } from "metabase-lib/lib/Alert";
 import Radio from "metabase/components/Radio";
 import RetinaImage from "react-retina-image";
 import Icon from "metabase/components/Icon";
+import MetabaseCookies from "metabase/lib/cookies";
 
 const getScheduleFromChannel = (channel) =>
     _.pick(channel, "schedule_day", "schedule_frame", "schedule_hour", "schedule_type")
@@ -51,7 +52,7 @@ export class CreateAlertModalContent extends Component {
         }
 
         this.state = {
-            hasSeenEducationalScreen: false,
+            hasSeenEducationalScreen: MetabaseCookies.getHasSeenAlertSplash(),
             // the default configuration for a new alert
             alert: {
                 name: "We should probably autogenerate the alert name",
@@ -77,15 +78,15 @@ export class CreateAlertModalContent extends Component {
     }
 
     proceedFromEducationalScreen = () => {
-        // TODO: how to save that educational screen has been seen? Should come from Redux state
+        MetabaseCookies.setHasSeenAlertSplash(true)
         this.setState({ hasSeenEducationalScreen: true })
     }
 
     render() {
         const { question, onClose } = this.props
-        const { alert } = this.state
+        const { alert, hasSeenEducationalScreen } = this.state
 
-        if (!this.state.hasSeenEducationalScreen) {
+        if (!hasSeenEducationalScreen) {
             return (
                 <ModalContent onClose={onClose}>
                     <AlertEducationalScreen onProceed={this.proceedFromEducationalScreen} />
@@ -175,10 +176,6 @@ export class UpdateAlertModalContent extends Component {
         const { updateAlert, onClose } = this.props
         const { modifiedAlert } = this.state
         await updateAlert(modifiedAlert)
-        // should close be triggered manually like this
-        // but the creation notification would appear automatically ...?
-        // OR should the modal visibility be part of QB redux state
-        // (maybe check how other modals are implemented)
         onClose()
     }
 
