@@ -16,6 +16,8 @@ import { inflect } from "metabase/lib/formatting";
 import { ALERT_TYPE_PROGRESS_BAR_GOAL, ALERT_TYPE_ROWS, ALERT_TYPE_TIMESERIES_GOAL } from "metabase-lib/lib/Alert";
 import type { AlertType } from "metabase-lib/lib/Alert";
 import Radio from "metabase/components/Radio";
+import RetinaImage from "react-retina-image";
+import Icon from "metabase/components/Icon";
 
 const getScheduleFromChannel = (channel) =>
     _.pick(channel, "schedule_day", "schedule_frame", "schedule_hour", "schedule_type")
@@ -104,8 +106,12 @@ export class CreateAlertModalContent extends Component {
                         onAlertChange={this.onAlertChange}
                         onDone={this.onCreateAlert}
                     />
-                    <Button onClick={onClose}>Cancel</Button>
-                    <Button primary onClick={this.onCreateAlert}>Done</Button>
+                    <div className="flex">
+                        <div className="ml-auto">
+                            <Button onClick={onClose}>Cancel</Button>
+                            <Button primary onClick={this.onCreateAlert}>Done</Button>
+                        </div>
+                    </div>
                 </div>
             </ModalContent>
         )
@@ -242,7 +248,7 @@ export class DeleteAlertSection extends Component {
 
 const AlertModalTitle = ({ text }) =>
     <div className="ml-auto mr-auto mt2 mb4 text-centered">
-        <p>[edit alert icon comes here]</p>
+        <RetinaImage src="app/assets/img/alerts/alert-bell-confetti-illustration.png" />
         <h2>{ text }</h2>
     </div>
 
@@ -424,6 +430,11 @@ export class AlertEditChannels extends Component {
 
 // TODO: Not sure how to translate text with formatting properly
 export const RawDataAlertTip = () =>
-    <div className="border-row-divider p3">
-        <b>Tip:</b> This kind of alert is most useful when your saved question doesn’t <em>usually</em> return any results, but you want to know when it does.
+    <div className="border-row-divider p3 flex align-center">
+        <div className="circle flex align-center justify-center bg-grey-0 p2 mr2 text-grey-3">
+            <Icon name="lightbulb" size="20" />
+        </div>
+        <div>
+            <b>Tip:</b> This kind of alert is most useful when your saved question doesn’t <em>usually</em> return any results, but you want to know when it does.
+        </div>
     </div>
