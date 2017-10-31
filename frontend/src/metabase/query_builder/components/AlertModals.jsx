@@ -206,8 +206,13 @@ export class UpdateAlertModalContent extends Component {
                         onDone={this.onUpdateAlert}
                     />
                     { isAdmin && <DeleteAlertSection alert={alert} onDeleteAlert={this.onDeleteAlert} /> }
-                    <Button onClick={onClose}>Cancel</Button>
-                    <Button primary onClick={this.onUpdateAlert}>Done</Button>
+
+                    <div className="flex">
+                        <div className="ml-auto">
+                            <Button onClick={onClose}>Cancel</Button>
+                            <Button primary onClick={this.onUpdateAlert}>Save changes</Button>
+                        </div>
+                    </div>
                 </div>
             </ModalContent>
         )
