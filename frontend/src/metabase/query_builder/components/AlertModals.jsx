@@ -110,7 +110,7 @@ export class CreateAlertModalContent extends Component {
                     <div className="flex">
                         <div className="ml-auto">
                             <Button onClick={onClose}>{t`Cancel`}</Button>
-                            <Button primary onClick={this.onCreateAlert}>{t`Done`}</Button>
+                            <Button primary className="mt4 ml2" onClick={this.onCreateAlert}>{t`Done`}</Button>
                         </div>
                     </div>
                 </div>
@@ -207,7 +207,7 @@ export class UpdateAlertModalContent extends Component {
                     <div className="flex">
                         <div className="ml-auto">
                             <Button onClick={onClose}>{t`Cancel`}</Button>
-                            <Button primary onClick={this.onUpdateAlert}>{t`Save changes`}</Button>
+                            <Button primary className="mt4 ml2" onClick={this.onUpdateAlert}>{t`Save changes`}</Button>
                         </div>
                     </div>
                 </div>
@@ -235,7 +235,7 @@ export class DeleteAlertSection extends Component {
         const { onDeleteAlert } = this.props
 
         return (
-            <div className="DangerZone mb2 p3 rounded bordered relative">
+            <div className="DangerZone mt4 pt4 mb2 p3 rounded bordered relative">
                 <h3 className="text-error absolute top bg-white px1" style={{ marginTop: "-12px" }}>{jt`Danger Zone`}</h3>
                 <div className="ml1">
                     <h4 className="text-bold mb1">{jt`Delete this alert`}</h4>
@@ -262,9 +262,9 @@ export class DeleteAlertSection extends Component {
 }
 
 const AlertModalTitle = ({ text }) =>
-    <div className="ml-auto mr-auto mt2 mb4 text-centered">
-        <RetinaImage src="app/assets/img/alerts/alert-bell-confetti-illustration.png" />
-        <h2>{ text }</h2>
+    <div className="ml-auto mr-auto my4 pb2 text-centered">
+        <RetinaImage className="mb3" src="app/assets/img/alerts/alert-bell-confetti-illustration.png" />
+        <h1 className="text-dark">{ text }</h1>
     </div>
 
 @connect((state) => ({ isAdmin: getUserIsAdmin(state) }), null)
@@ -354,8 +354,8 @@ export const AlertFirstOnlyToggle = (props) =>
     <AlertSettingToggle {...props} setting="alert_first_only" />
 
 export const AlertSettingToggle = ({ alert, onAlertChange, title, trueText, falseText, setting }) =>
-    <div className="mb2">
-        <h3>{title}</h3>
+    <div className="mb4 pb2">
+        <h3 className="text-dark mb1">{title}</h3>
         <Radio
             value={alert[setting]}
             onChange={(value) => onAlertChange({ ...alert, [setting]: value })}
@@ -370,7 +370,7 @@ export class AlertEditSchedule extends Component {
 
         return (
             <div>
-                <h3>How often should we check for results?</h3>
+                <h3 className="mt4 mb3 text-dark">How often should we check for results?</h3>
 
                 <div className="bordered rounded mb2">
                     { alertType === ALERT_TYPE_ROWS && <RawDataAlertTip /> }
@@ -423,8 +423,8 @@ export class AlertEditChannels extends Component {
     render() {
         const { alert, user, userList, formInput } = this.props;
         return (
-            <div>
-                <h3>{jt`Where do you want to send these alerts?`}</h3>
+            <div className="mt4 pt2">
+                <h3 className="text-dark mb3">{jt`Where do you want to send these alerts?`}</h3>
                 <div className="mb2">
                     <PulseEditChannels
                         pulse={alert}

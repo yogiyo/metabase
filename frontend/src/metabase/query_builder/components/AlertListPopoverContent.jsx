@@ -40,7 +40,7 @@ export class AlertListPopoverContent extends Component {
         const hasOwnAlert = _.any(questionAlerts, (alert) => alert.creator.id === user.id)
 
         return (
-            <div style={{ minWidth: 340 }}>
+            <div style={{ minWidth: 410 }}>
                 <ul>
                     { ownAlertRemovedAsNonAdmin && <UnsubscribedListItem /> }
                     { Object.values(sortedQuestionAlerts).map((alert) =>
@@ -53,8 +53,8 @@ export class AlertListPopoverContent extends Component {
                 </ul>
                 { !hasOwnAlert &&
                     <div className="border-top p2">
-                        <a className="link" onClick={this.onAdd}>
-                            <Icon name="add" /> {t`Set up your own alert`}
+                        <a className="link flex align-center text-bold text-small" onClick={this.onAdd}>
+                            <Icon name="add" className="ml1 mr2" /> {t`Set up your own alert`}
                         </a>
                     </div>
                 }
@@ -125,35 +125,35 @@ export class AlertListItem extends Component {
         }
 
         return (
-            <li className={cx("flex p2 text-grey-4", { "bg-grey-0": isCurrentUser && !isAdmin })}>
-                <Icon name="alert" size="22" />
+            <li className={cx("flex p3 text-grey-4 border-bottom", { "bg-grey-0": isCurrentUser && !isAdmin })}>
+                <Icon name="alert" size="20" />
                 <div className="full ml2">
-                    <div className="flex align-center">
+                    <div className="flex align-top">
                         <div>
                             <AlertCreatorTitle alert={alert} user={user} />
                         </div>
                         <div className="ml-auto text-bold text-small">
-                            { !isAdmin && <a className="link" onClick={this.onUnsubscribe}>{jt`Unsubscribe`}</a> }
-                            { (isAdmin || isCurrentUser) && <a className="link ml2" onClick={this.onEdit}>{jt`Edit`}</a> }
+                            { (isAdmin || isCurrentUser) && <a className="link" onClick={this.onEdit}>{jt`Edit`}</a> }
+                            { !isAdmin && <a className="link ml2" onClick={this.onUnsubscribe}>{jt`Unsubscribe`}</a> }
                         </div>
                     </div>
 
                     {
                         // To-do: @kdoh wants to look into overall alignment
                     }
-                    <ul className="flex">
+                    <ul className="flex mt2 text-small">
                         <li className="flex align-center">
-                            <Icon name="clock" /> <AlertScheduleText schedule={alert.channels[0]} verbose={!isAdmin} />
+                            <Icon name="clock" size="12" className="mr1" /> <AlertScheduleText schedule={alert.channels[0]} verbose={!isAdmin} />
                         </li>
                         { isAdmin && emailEnabled &&
-                            <li className="ml1 flex align-center">
-                                <Icon name="mail" />
+                            <li className="ml3 flex align-center">
+                                <Icon name="mail" className="mr1" />
                                 { emailChannel.recipients.length }
                             </li>
                         }
                         { isAdmin && slackEnabled &&
-                            <li className="ml1 flex align-center">
-                                <Icon name="slack" size={16} />
+                            <li className="ml3 flex align-center">
+                                <Icon name="slack" size={16} className="mr1" />
                                 { slackChannel.details.channel.replace("#","") }
                             </li>
                         }
@@ -169,7 +169,12 @@ export class AlertListItem extends Component {
 }
 
 export const UnsubscribedListItem = () =>
-    <li>{jt`Okay, you're unsubscribed`}<hr /></li>
+    <li className="border-bottom flex align-center py3 text-bold">
+        <div className="circle flex align-center justify-center p1 bg-grey-0 mx2">
+            <Icon name="check" className="text-success" />
+        </div>
+        <h3 className="text-dark">{jt`Okay, you're unsubscribed`}</h3>
+    </li>
 
 export class AlertScheduleText extends Component {
     getScheduleText = () => {

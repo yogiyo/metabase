@@ -8,6 +8,7 @@ import { AlertApi } from "metabase/services";
 import { RestfulRequest } from "metabase/lib/request";
 import { getUser } from "metabase/selectors/user";
 import { deletePulse } from "metabase/pulse/actions";
+import Icon from "metabase/components/Icon.jsx";
 
 export const FETCH_ALL_ALERTS = 'metabase/alerts/FETCH_ALL_ALERTS'
 const fetchAllAlertsRequest = new RestfulRequest({
@@ -51,7 +52,7 @@ export const createAlert = (alert) => {
         dispatch(addUndo(createUndo({
             type: "create-alert",
             // eslint-disable-next-line react/display-name
-            message: () => <div>Your alert is all set up.</div>,
+            message: () => <div className="flex align-center text-bold"><Icon name="alertConfirm" size="19" className="mr2 text-success" />Your alert is all set up.</div>,
             action: null // alert creation is not undoable
         })));
 

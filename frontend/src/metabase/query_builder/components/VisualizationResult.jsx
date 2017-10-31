@@ -45,7 +45,7 @@ export default class VisualizationResult extends Component {
                 <VisualizationErrorMessage
                     type='noRows'
                     title='No results!'
-                    message='This may be the answer you’re looking for. If not, chances are your filters are too specific. Try removing or changing your filters to see more data.'
+                    message='This may be the answer you’re looking for. If not, try removing or changing your filters to make them less specific.'
                     action={
                         <div>
                             { supportsRowsPresentAlert && <p>
@@ -85,5 +85,3 @@ export default class VisualizationResult extends Component {
         }
     }
 }
-
-
