@@ -150,6 +150,7 @@
         (m/dissoc-in [:details :emails]))))
 
 (defn retrieve-alerts-for-card
+  "Find all alerts for `CARD-ID` that `USER-ID` is set to receive"
   [card-id user-id]
   (map (comp pulse->alert hydrate-pulse #(into (PulseInstance.) %))
        (db/query {:select    [:p.*]
