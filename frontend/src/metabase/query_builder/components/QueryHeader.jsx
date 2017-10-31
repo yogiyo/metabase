@@ -438,7 +438,7 @@ export default class QueryHeader extends Component {
             </Tooltip>
         ]);
 
-        if (card.can_write && question.alertType() !== null) {
+        if (card && card.can_write && question.alertType() !== null) {
             const createAlertItem = {
                 title: t`Get alerts about this`,
                 icon: "alert",
