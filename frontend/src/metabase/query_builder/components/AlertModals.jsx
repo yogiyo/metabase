@@ -130,9 +130,22 @@ export class AlertEducationalScreen extends Component {
             <div className="pt2 ml-auto mr-auto text-centered">
                 <div className="pt4">
                     <h1>The wide world of alerts</h1>
-                    <h2>There are a few different kinds of alerts you can get</h2>
+                    <h3>There are a few different kinds of alerts you can get</h3>
                 </div>
-                <p>[ the educational image comes here ]</p>
+                <div className="text-paragraph">
+                    <div className="flex align-center">
+                        <RetinaImage src="app/assets/img/alerts/education-illustration-01-raw-data.png" />
+                        <p className="ml2">When a raw data question <b>returns any results</b></p>
+                    </div>
+                    <div className="flex align-center flex-reverse">
+                        <RetinaImage src="app/assets/img/alerts/education-illustration-02-goal.png" />
+                        <p className="mr2">When a line or bar <b>crosses a goal line</b></p>
+                    </div>
+                    <div className="flex align-center">
+                        <RetinaImage src="app/assets/img/alerts/education-illustration-03-progress.png" />
+                        <p className="ml2">When a progress bar <b>reaches its goal</b></p>
+                    </div>
+                </div>
                 <Button primary onClick={onProceed}>Set up an alert</Button>
             </div>
         )
