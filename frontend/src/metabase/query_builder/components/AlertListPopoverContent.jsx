@@ -31,11 +31,12 @@ export class AlertListPopoverContent extends Component {
     }
 
     render() {
-        const { questionAlerts, setMenuFreeze, user,  } = this.props;
+        const { questionAlerts, setMenuFreeze, user } = this.props;
         const { adding, ownAlertRemovedAsNonAdmin } = this.state
 
         // user's own alert should be shown first if it exists
         const sortedQuestionAlerts = _.sortBy(questionAlerts, (alert) => alert.creator.id !== user.id)
+        const hasOwnAlert = _.any(questionAlerts, (alert) => alert.creator.id === user.id)
 
         return (
             <div className="p2" style={{ minWidth: 340 }}>
@@ -48,11 +49,9 @@ export class AlertListPopoverContent extends Component {
                             onRemovedOwnAlert={this.onRemovedOwnAlert}
                         />)
                     }
-                    <li>
-                        <a className="link" onClick={this.onAdd}>
-                            Add new alert (this button isn't in the design)
-                        </a>
-                    </li>
+                    { !hasOwnAlert && <li className="bg-grey-0 text-brand-darken cursor-pointer" onClick={this.onAdd}>
+                        <Icon name="add" /> Set up your own alert
+                    </li> }
                 </ul>
                 { adding && <Modal full onClose={this.onEndAdding}>
                     <CreateAlertModalContent onClose={this.onEndAdding} />
