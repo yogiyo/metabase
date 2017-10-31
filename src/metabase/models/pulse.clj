@@ -161,8 +161,7 @@
                   :where  [:and
                            [:not= :p.alert_condition nil]
                            [:= :pc.card_id card-id]
-                           [:or [:= :p.creator_id user-id]
-                            [:= :pcr.user_id user-id]]]})))
+                           [:= :pcr.user_id user-id]]})))
 
 (defn retrieve-alerts-for-card
   "Find all alerts for `CARD-ID`, used for admin users"

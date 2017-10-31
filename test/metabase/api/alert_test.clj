@@ -311,6 +311,31 @@
                                                           :pulse_channel_id pc-id}]]
       (tu/boolean-ids-and-timestamps ((user->client :rasta) :get 200 (format "alert/question/%d" card-id))))))
 
+;; Non-admin users shouldn't see alerts they created if they're no longer recipients
+(expect
+  [1 0]
+  (data/with-db (data/get-or-create-database! defs/test-data)
+    (tt/with-temp* [Card                 [{card-id :id}  (basic-alert-query)]
+                    Pulse                [{pulse-id :id} {:name              "Alert Name"
+                                                          :alert_condition   "rows"
+                                                          :alert_description "Alert when above goal"
+                                                          :alert_first_only  false
+                                                          :alert_above_goal  true
+                                                          :creator_id        (user->id :rasta)}]
+                    PulseCard             [_             {:pulse_id pulse-id
+                                                          :card_id  card-id
+                                                          :position 0}]
+                    PulseChannel          [{pc-id :id}   {:pulse_id pulse-id}]
+                    PulseChannelRecipient [{pcr-id :id}  {:user_id          (user->id :rasta)
+                                                          :pulse_channel_id pc-id}]
+                    PulseChannelRecipient [_             {:user_id          (user->id :crowberto)
+                                                          :pulse_channel_id pc-id}]]
+
+      [(count (tu/boolean-ids-and-timestamps ((user->client :rasta) :get 200 (format "alert/question/%d" card-id))))
+       (do
+         (db/delete! PulseChannelRecipient :id pcr-id)
+         (count (tu/boolean-ids-and-timestamps ((user->client :rasta) :get 200 (format "alert/question/%d" card-id)))))])))
+
 ;; Non-admin users should not see others alerts, admins see all alerts
 (expect
   [1 2]
