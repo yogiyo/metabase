@@ -38,7 +38,7 @@ export class AlertListPopoverContent extends Component {
         const sortedQuestionAlerts = _.sortBy(questionAlerts, (alert) => alert.creator.id !== user.id)
 
         return (
-            <div className="p2" style={{ minWidth: 340 }}>
+            <div style={{ minWidth: 340 }}>
                 <ul>
                     { ownAlertRemovedAsNonAdmin && <UnsubscribedListItem /> }
                     { Object.values(sortedQuestionAlerts).map((alert) =>
@@ -48,12 +48,12 @@ export class AlertListPopoverContent extends Component {
                             onRemovedOwnAlert={this.onRemovedOwnAlert}
                         />)
                     }
-                    <li>
-                        <a className="link" onClick={this.onAdd}>
-                            Add new alert (this button isn't in the design)
-                        </a>
-                    </li>
                 </ul>
+                <div className="border-top p2">
+                    <a className="link" onClick={this.onAdd}>
+                        Add new alert (this button isn't in the design)
+                    </a>
+                </div>
                 { adding && <Modal full onClose={this.onEndAdding}>
                     <CreateAlertModalContent onClose={this.onEndAdding} />
                 </Modal> }
@@ -121,30 +121,40 @@ export class AlertListItem extends Component {
         }
 
         return (
-            <li className={cx({ "bg-grey-0": isCurrentUser && !isAdmin })}>
-                <div className="flex">
-                    <div className="flex-full"><AlertCreatorTitle alert={alert} user={user} /></div>
-                    <div>
-                        { !isAdmin && <a className="link" onClick={this.onUnsubscribe}>{jt`Unsubscribe`}</a> }
-                        { (isAdmin || isCurrentUser) && <span> <a className="link" onClick={this.onEdit}>{jt`Edit`}</a></span> }
+            <li className={cx("flex p2 text-grey-4", { "bg-grey-0": isCurrentUser && !isAdmin })}>
+                <Icon name="alert" size="22" />
+                <div className="full ml2">
+                    <div className="flex align-center">
+                        <div>
+                            <AlertCreatorTitle alert={alert} user={user} />
+                        </div>
+                        <div className="ml-auto text-bold text-small">
+                            { !isAdmin && <a className="link" onClick={this.onUnsubscribe}>{jt`Unsubscribe`}</a> }
+                            { (isAdmin || isCurrentUser) && <a className="link ml2" onClick={this.onEdit}>{jt`Edit`}</a> }
+                        </div>
                     </div>
+
+                    {
+                        // To-do: @kdoh wants to look into overall alignment
+                    }
+                    <ul className="flex">
+                        <li className="flex align-center">
+                            <Icon name="clock" /> <AlertScheduleText schedule={alert.channels[0]} verbose={!isAdmin} />
+                        </li>
+                        { isAdmin && emailEnabled &&
+                            <li className="ml1 flex align-center">
+                                <Icon name="mail" />
+                                { emailChannel.recipients.length }
+                            </li>
+                        }
+                        { isAdmin && slackEnabled &&
+                            <li className="ml1 flex align-center">
+                                <Icon name="slack" size={16} />
+                                { slackChannel.details.channel.replace("#","") }
+                            </li>
+                        }
+                    </ul>
                 </div>
-                <ul className="flex">
-                    <li><Icon name="clock" /> <AlertScheduleText schedule={alert.channels[0]} verbose={!isAdmin} /></li>
-                    { isAdmin && emailEnabled &&
-                        <li className="ml1">
-                            <Icon name="mail" />
-                            { emailChannel.recipients.length }
-                        </li>
-                    }
-                    { isAdmin && slackEnabled &&
-                        <li className="ml1">
-                            <Icon name="slack" size={16} />
-                            { slackChannel.details.channel.replace("#","") }
-                        </li>
-                    }
-                </ul>
-                <hr />
 
                 { editing && <Modal full onClose={this.onEndEditing}>
                     <UpdateAlertModalContent alert={alert} onClose={this.onEndEditing} />
@@ -211,6 +221,6 @@ export class AlertCreatorTitle extends Component {
             ? t`You're receiving ${creator}'s alerts`
             : t`${creator} set up an alert`
 
-        return <h3>{text}</h3>
+        return <h3 className="text-dark">{text}</h3>
     }
 }
