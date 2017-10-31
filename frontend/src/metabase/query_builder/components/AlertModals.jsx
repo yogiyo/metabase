@@ -108,8 +108,8 @@ export class CreateAlertModalContent extends Component {
                     />
                     <div className="flex">
                         <div className="ml-auto">
-                            <Button onClick={onClose}>Cancel</Button>
-                            <Button primary onClick={this.onCreateAlert}>Done</Button>
+                            <Button onClick={onClose}>{t`Cancel`}</Button>
+                            <Button primary onClick={this.onCreateAlert}>{t`Done`}</Button>
                         </div>
                     </div>
                 </div>
@@ -129,24 +129,24 @@ export class AlertEducationalScreen extends Component {
         return (
             <div className="pt2 ml-auto mr-auto text-centered">
                 <div className="pt4">
-                    <h1>The wide world of alerts</h1>
-                    <h3>There are a few different kinds of alerts you can get</h3>
+                    <h1>{t`The wide world of alerts`}</h1>
+                    <h3>{t`There are a few different kinds of alerts you can get`}</h3>
                 </div>
                 <div className="text-paragraph">
                     <div className="flex align-center">
                         <RetinaImage src="app/assets/img/alerts/education-illustration-01-raw-data.png" />
-                        <p className="ml2">When a raw data question <b>returns any results</b></p>
+                        <p className="ml2">{jt`When a raw data question ${<strong>returns any results</strong>}`}</p>
                     </div>
                     <div className="flex align-center flex-reverse">
                         <RetinaImage src="app/assets/img/alerts/education-illustration-02-goal.png" />
-                        <p className="mr2">When a line or bar <b>crosses a goal line</b></p>
+                        <p className="mr2">{jt`When a line or bar ${<strong>crosses a goal line</strong>}`}</p>
                     </div>
                     <div className="flex align-center">
                         <RetinaImage src="app/assets/img/alerts/education-illustration-03-progress.png" />
-                        <p className="ml2">When a progress bar <b>reaches its goal</b></p>
+                        <p className="ml2">{jt`When a progress bar ${<strong>reaches its goal</strong>}`}</p>
                     </div>
                 </div>
-                <Button primary onClick={onProceed}>Set up an alert</Button>
+                <Button primary onClick={onProceed}>{t`Set up an alert`}</Button>
             </div>
         )
     }
@@ -209,8 +209,8 @@ export class UpdateAlertModalContent extends Component {
 
                     <div className="flex">
                         <div className="ml-auto">
-                            <Button onClick={onClose}>Cancel</Button>
-                            <Button primary onClick={this.onUpdateAlert}>Save changes</Button>
+                            <Button onClick={onClose}>{t`Cancel`}</Button>
+                            <Button primary onClick={this.onUpdateAlert}>{t`Save changes`}</Button>
                         </div>
                     </div>
                 </div>
@@ -453,6 +453,6 @@ export const RawDataAlertTip = () =>
             <Icon name="lightbulb" size="20" />
         </div>
         <div>
-            <b>Tip:</b> This kind of alert is most useful when your saved question doesn’t <em>usually</em> return any results, but you want to know when it does.
+            {jt`${<strong>Tip:</strong>} This kind of alert is most useful when your saved question doesn’t ${<em>usually</em>} return any results, but you want to know when it does.`}
         </div>
     </div>
