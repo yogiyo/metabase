@@ -7,8 +7,17 @@ import { AM_PM_OPTIONS, DAY_OF_WEEK_OPTIONS, HOUR_OPTIONS } from "metabase/compo
 import Icon from "metabase/components/Icon";
 import Modal from "metabase/components/Modal";
 import { CreateAlertModalContent, UpdateAlertModalContent } from "metabase/query_builder/components/AlertModals";
-import _ from "underscore"
+import _ from "underscore";
 import cx from "classnames";
+import cxs from 'cxs';
+
+const customSpacing = cxs ({
+    marginLeft: '10px'
+})
+const ownAlertCustomSpacing = cxs ({
+    marginLeft: '9px',
+    marginRight: '17px'
+})
 
 @connect((state) => ({ questionAlerts: getQuestionAlerts(state), user: getUser(state) }), null)
 export class AlertListPopoverContent extends Component {
@@ -51,9 +60,9 @@ export class AlertListPopoverContent extends Component {
                     }
                 </ul>
                 { !hasOwnAlert &&
-                    <div className="border-top p2">
+                    <div className="border-top p2 bg-light-blue">
                         <a className="link flex align-center text-bold text-small" onClick={this.onAdd}>
-                            <Icon name="add" className="ml1 mr2" /> {t`Set up your own alert`}
+                            <Icon name="add" className={ownAlertCustomSpacing} /> {t`Set up your own alert`}
                         </a>
                     </div>
                 }
@@ -124,7 +133,7 @@ export class AlertListItem extends Component {
         }
 
         return (
-            <li className={cx("flex p3 text-grey-4 border-bottom", { "bg-grey-0": isCurrentUser && !isAdmin })}>
+            <li className={cx("flex p3 text-grey-4 border-bottom", { "bg-light-blue": isCurrentUser && !isAdmin })}>
                 <Icon name="alert" size="20" />
                 <div className="full ml2">
                     <div className="flex align-top">
@@ -168,11 +177,11 @@ export class AlertListItem extends Component {
 }
 
 export const UnsubscribedListItem = () =>
-    <li className="border-bottom flex align-center py3 text-bold">
-        <div className="circle flex align-center justify-center p1 bg-grey-0 mx2">
+    <li className="border-bottom flex align-center py4 text-bold">
+        <div className="circle flex align-center justify-center p1 bg-grey-0 ml2">
             <Icon name="check" className="text-success" />
         </div>
-        <h3 className="text-dark">{jt`Okay, you're unsubscribed`}</h3>
+        <h3 className={`${customSpacing} text-dark`} >{jt`Okay, you're unsubscribed`}</h3>
     </li>
 
 export class AlertScheduleText extends Component {

@@ -19,7 +19,7 @@ import Radio from "metabase/components/Radio";
 import RetinaImage from "react-retina-image";
 import Icon from "metabase/components/Icon";
 import MetabaseCookies from "metabase/lib/cookies";
-import cxs from 'cxs'
+import cxs from 'cxs';
 
 const getScheduleFromChannel = (channel) =>
     _.pick(channel, "schedule_day", "schedule_frame", "schedule_hour", "schedule_type")
