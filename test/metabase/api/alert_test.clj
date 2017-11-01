@@ -201,12 +201,19 @@
                                              :card              {:id 100}
                                              :channels          ["abc"]}))
 
-(tt/expect-with-temp [Pulse [pulse {:alert_description "Foo"
-                                    :alert_condition   "rows"
-                                    :alert_first_only  false
-                                    :creator_id        (user->id :rasta)
-                                    :name              "Original Alert Name"}]
-                      Card  [card]]
+;; Non-admin users can update alerts they created
+(tt/expect-with-temp [Pulse [{pulse-id :id} {:alert_description "Foo"
+                                             :alert_condition   "rows"
+                                             :alert_first_only  false
+                                             :creator_id        (user->id :rasta)
+                                             :name              "Original Alert Name"}]
+                      Card  [{card-id :id :as card}]
+                      PulseCard             [_             {:pulse_id pulse-id
+                                                            :card_id  card-id
+                                                            :position 0}]
+                      PulseChannel          [{pc-id :id}   {:pulse_id pulse-id}]
+                      PulseChannelRecipient [{pcr-id :id}  {:user_id          (user->id :rasta)
+                                                            :pulse_channel_id pc-id}]]
   {:id                true
    :name              "Updated Pulse"
    :creator_id        true
@@ -219,29 +226,143 @@
    :alert_above_goal  nil
    :card              (pulse-card-details card)
    :channels          [(merge pulse-channel-defaults
-                              {:channel_type  "slack"
+                              {:channel_type  "email"
                                :schedule_type "hourly"
-                               :details       {:channels "#general"}
-                               :recipients    []
+                               :recipients    [(dissoc (user-details (fetch-user :rasta))
+                                                       :last_login :is_qbnewb :is_superuser :date_joined)]
                                :updated_at    true,
                                :pulse_id      true,
                                :id            true,
                                :created_at    true})]
    :skip_if_empty     true}
   (tu/with-model-cleanup [Pulse]
-    (tu/boolean-ids-and-timestamps ((user->client :rasta) :put 200 (format "alert/%d" (:id pulse))
+    (tu/boolean-ids-and-timestamps ((user->client :rasta) :put 200 (format "alert/%d" pulse-id)
                                     {:name              "Updated Pulse"
                                      :card              {:id (:id card)}
                                      :alert_description "Foo"
                                      :alert_condition   "rows"
                                      :alert_first_only  false
-                                     :channels          [{:enabled       true
-                                                          :channel_type  "slack"
+                                     :channels          [{:id            pc-id
+                                                          :enabled       true
+                                                          :channel_type  "email"
                                                           :schedule_type "hourly"
                                                           :schedule_hour 12
                                                           :schedule_day  "mon"
-                                                          :recipients    []
-                                                          :details       {:channels "#general"}}]
+                                                          :recipients    [(fetch-user :rasta)]
+                                                          :details       {}}]
+                                     :skip_if_empty     false}))))
+
+;; Admin users can update any alert
+(tt/expect-with-temp [Pulse [{pulse-id :id} {:alert_description "Foo"
+                                             :alert_condition   "rows"
+                                             :alert_first_only  false
+                                             :creator_id        (user->id :rasta)
+                                             :name              "Original Alert Name"}]
+                      Card  [{card-id :id :as card}]
+                      PulseCard             [_             {:pulse_id pulse-id
+                                                            :card_id  card-id
+                                                            :position 0}]
+                      PulseChannel          [{pc-id :id}   {:pulse_id pulse-id}]
+                      PulseChannelRecipient [{pcr-id :id}  {:user_id          (user->id :rasta)
+                                                            :pulse_channel_id pc-id}]]
+  {:id                true
+   :name              "Updated Pulse"
+   :creator_id        true
+   :creator           (user-details (fetch-user :rasta))
+   :created_at        true
+   :updated_at        true
+   :alert_description "Foo"
+   :alert_condition   "rows"
+   :alert_first_only  false
+   :alert_above_goal  nil
+   :card              (pulse-card-details card)
+   :channels          [(merge pulse-channel-defaults
+                              {:channel_type  "email"
+                               :schedule_type "hourly"
+                               :recipients    [(dissoc (user-details (fetch-user :rasta))
+                                                       :last_login :is_qbnewb :is_superuser :date_joined)]
+                               :updated_at    true,
+                               :pulse_id      true,
+                               :id            true,
+                               :created_at    true})]
+   :skip_if_empty     true}
+  (tu/with-model-cleanup [Pulse]
+    (tu/boolean-ids-and-timestamps ((user->client :crowberto) :put 200 (format "alert/%d" pulse-id)
+                                    {:name              "Updated Pulse"
+                                     :card              {:id (:id card)}
+                                     :alert_description "Foo"
+                                     :alert_condition   "rows"
+                                     :alert_first_only  false
+                                     :channels          [{:id            pc-id
+                                                          :enabled       true
+                                                          :channel_type  "email"
+                                                          :schedule_type "hourly"
+                                                          :schedule_hour 12
+                                                          :schedule_day  "mon"
+                                                          :recipients    [(fetch-user :rasta)]
+                                                          :details       {}}]
+                                     :skip_if_empty     false}))))
+
+;; Non-admin users can't edit alerts they didn't create
+(tt/expect-with-temp [Pulse [{pulse-id :id} {:alert_description "Foo"
+                                             :alert_condition   "rows"
+                                             :alert_first_only  false
+                                             :creator_id        (user->id :crowberto)
+                                             :name              "Original Alert Name"}]
+                      Card  [{card-id :id :as card}]
+                      PulseCard             [_             {:pulse_id pulse-id
+                                                            :card_id  card-id
+                                                            :position 0}]
+                      PulseChannel          [{pc-id :id}   {:pulse_id pulse-id}]
+                      PulseChannelRecipient [{pcr-id :id}  {:user_id          (user->id :rasta)
+                                                            :pulse_channel_id pc-id}]]
+  "You don't have permissions to do that."
+  (tu/with-model-cleanup [Pulse]
+    (tu/boolean-ids-and-timestamps ((user->client :rasta) :put 403 (format "alert/%d" pulse-id)
+                                    {:name              "Updated Pulse"
+                                     :card              {:id (:id card)}
+                                     :alert_description "Foo"
+                                     :alert_condition   "rows"
+                                     :alert_first_only  false
+                                     :channels          [{:id            pc-id
+                                                          :enabled       true
+                                                          :channel_type  "email"
+                                                          :schedule_type "hourly"
+                                                          :schedule_hour 12
+                                                          :schedule_day  "mon"
+                                                          :recipients    [(fetch-user :rasta)]
+                                                          :details       {}}]
+                                     :skip_if_empty     false}))))
+
+;; Non-admin users can't edit alerts if they're not in the recipient list
+(tt/expect-with-temp [Pulse [{pulse-id :id} {:alert_description "Foo"
+                                             :alert_condition   "rows"
+                                             :alert_first_only  false
+                                             :creator_id        (user->id :rasta)
+                                             :name              "Original Alert Name"}]
+                      Card  [{card-id :id :as card}]
+                      PulseCard             [_             {:pulse_id pulse-id
+                                                            :card_id  card-id
+                                                            :position 0}]
+                      PulseChannel          [{pc-id :id}   {:pulse_id pulse-id}]
+                      PulseChannelRecipient [{pcr-id :id}  {:user_id          (user->id :crowberto)
+                                                            :pulse_channel_id pc-id}]]
+  "You don't have permissions to do that."
+  (tu/with-model-cleanup [Pulse]
+    (tu/boolean-ids-and-timestamps ((user->client :rasta) :put 403 (format "alert/%d" pulse-id)
+                                    {:name              "Updated Pulse"
+                                     :card              {:id (:id card)}
+                                     :alert_description "Foo"
+                                     :alert_condition   "rows"
+                                     :alert_first_only  false
+                                     :channels          [{:id            pc-id
+                                                          :enabled       true
+                                                          :channel_type  "email"
+                                                          :schedule_type "hourly"
+                                                          :schedule_hour 12
+                                                          :schedule_day  "mon"
+                                                          :recipients    [(fetch-user :rasta)]
+                                                          :details       {}}]
                                      :skip_if_empty     false}))))
 
 (defn- basic-alert-query []

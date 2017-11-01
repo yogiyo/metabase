@@ -9,7 +9,9 @@
              [pulse :as p]
              [query-processor :as qp]
              [util :as u]]
-            [metabase.api.common :as api]
+            [metabase.api
+             [common :as api]
+             [pulse :as pulse-api]]
             [metabase.integrations.slack :as slack]
             [metabase.models
              [card :refer [Card]]
@@ -42,16 +44,6 @@
                can-write? (mi/can-write? alert)]]
     (assoc alert :read_only (not can-write?))))
 
-(defn- check-card-read-permissions [{card-id :id}]
-  (assert (integer? card-id))
-  (api/read-check Card card-id))
-
-#_(defn- check-channels [channels]
-  (every? (fn [channel]
-            (and (get channel :description)
-                 (contains? #{"rows" "goal"} (get channel :condition))))
-          channels))
-
 (def ^:private AlertConditions
   (s/enum "rows" "goal"))
 
@@ -68,11 +60,28 @@
    alert_above_goal  (s/maybe s/Bool)
    card              su/Map
    channels          (su/non-empty [su/Map])}
-  (check-card-read-permissions card)
+  (pulse-api/check-card-read-permissions [card])
   (api/check-500
    (-> req
        only-alert-keys
        (pulse/create-alert! api/*current-user-id* (u/get-id card) channels))))
+
+(defn- recipient-ids [{:keys [channels] :as alert}]
+  (reduce (fn [acc {:keys [channel_type recipients]}]
+            (if (= :email channel_type)
+              (into acc (map :id recipients))
+              acc))
+          #{} channels))
+
+(defn- check-alert-update-permissions
+  "Admin users can update all alerts. Non-admin users can update alerts that they created as long as they are still a
+  recipient of that alert"
+  [pulse-id]
+  (when-not api/*is-superuser?*
+    (let [{:keys [channels] :as alert} (pulse/retrieve-alert pulse-id)]
+      (api/write-check alert)
+      (api/check-403 (and (= api/*current-user-id* (:creator_id alert))
+                          (contains? (recipient-ids alert) api/*current-user-id*))))))
 
 (api/defendpoint PUT "/:id"
   "Update a `Alert` with ID."
@@ -84,8 +93,7 @@
    alert_above_goal  (s/maybe s/Bool)
    card              su/Map
    channels          (su/non-empty [su/Map])}
-  (api/write-check Pulse id)
-  (check-card-read-permissions card)
+  (check-alert-update-permissions id)
   (-> req
       only-alert-keys
       (assoc :id id :card (u/get-id card) :channels channels)
