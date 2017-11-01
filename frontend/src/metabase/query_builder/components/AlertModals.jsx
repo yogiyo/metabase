@@ -19,9 +19,13 @@ import Radio from "metabase/components/Radio";
 import RetinaImage from "react-retina-image";
 import Icon from "metabase/components/Icon";
 import MetabaseCookies from "metabase/lib/cookies";
+import cxs from 'cxs'
 
 const getScheduleFromChannel = (channel) =>
     _.pick(channel, "schedule_day", "schedule_frame", "schedule_hour", "schedule_type")
+const classes = cxs ({
+    width: '185px',
+})
 
 @connect((state) => ({ question: getQuestion(state), user: getUser(state) }), { createAlert })
 export class CreateAlertModalContent extends Component {
@@ -128,26 +132,26 @@ export class AlertEducationalScreen extends Component {
         const { onProceed } = this.props;
 
         return (
-            <div className="pt2 ml-auto mr-auto text-centered">
+            <div className="pt2 pb4 ml-auto mr-auto text-centered">
                 <div className="pt4">
-                    <h1>{t`The wide world of alerts`}</h1>
-                    <h3>{t`There are a few different kinds of alerts you can get`}</h3>
+                    <h1 className="mb1 text-dark">{t`The wide world of alerts`}</h1>
+                    <h3 className="mb4">{t`There are a few different kinds of alerts you can get`}</h3>
                 </div>
-                <div className="text-paragraph">
-                    <div className="flex align-center">
+                <div className="text-paragraph pt4">
+                    <div className="flex align-center pr4">
                         <RetinaImage src="app/assets/img/alerts/education-illustration-01-raw-data.png" />
-                        <p className="ml2">{jt`When a raw data question ${<strong>returns any results</strong>}`}</p>
+                        <p className={`${classes} ml3 text-left`}>{jt`When a raw data question ${<strong>returns any results</strong>}`}</p>
                     </div>
-                    <div className="flex align-center flex-reverse">
+                    <div className="flex align-center flex-reverse pl4">
                         <RetinaImage src="app/assets/img/alerts/education-illustration-02-goal.png" />
-                        <p className="mr2">{jt`When a line or bar ${<strong>crosses a goal line</strong>}`}</p>
+                        <p className={`${classes} mr3 text-right`}>{jt`When a line or bar ${<strong>crosses a goal line</strong>}`}</p>
                     </div>
                     <div className="flex align-center">
                         <RetinaImage src="app/assets/img/alerts/education-illustration-03-progress.png" />
-                        <p className="ml2">{jt`When a progress bar ${<strong>reaches its goal</strong>}`}</p>
+                        <p className={`${classes} ml3 text-left`}>{jt`When a progress bar ${<strong>reaches its goal</strong>}`}</p>
                     </div>
                 </div>
-                <Button primary onClick={onProceed}>{t`Set up an alert`}</Button>
+                <Button primary className="mt4" onClick={onProceed}>{t`Set up an alert`}</Button>
             </div>
         )
     }
