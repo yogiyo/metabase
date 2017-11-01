@@ -14,7 +14,8 @@
             [toucan
              [db :as db]
              [hydrate :refer [hydrate]]]
-            [toucan.util.test :as tt]))
+            [toucan.util.test :as tt]
+            [metabase.test.util :as tu]))
 
 (defn- user-details
   [username]
@@ -129,14 +130,15 @@
                     :display     :table}]
    :skip_if_empty false}
   (tt/with-temp Card [{:keys [id]} {:name "Test Card"}]
-    (create-pulse-then-select! "Booyah!"
-                               (user->id :rasta)
-                               [id]
-                               [{:channel_type  :email
-                                 :schedule_type :daily
-                                 :schedule_hour 18
-                                 :recipients    [{:email "foo@bar.com"}]}]
-                               false)))
+    (tu/with-model-cleanup [Pulse]
+      (create-pulse-then-select! "Booyah!"
+                                 (user->id :rasta)
+                                 [id]
+                                 [{:channel_type  :email
+                                   :schedule_type :daily
+                                   :schedule_hour 18
+                                   :recipients    [{:email "foo@bar.com"}]}]
+                                 false))))
 
 ;; update-pulse!
 ;; basic update.  we are testing several things here

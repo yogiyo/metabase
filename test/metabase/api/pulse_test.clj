@@ -100,16 +100,17 @@
                            :schedule_hour  12
                            :recipients     []})]
    :skip_if_empty false}
-  (-> (pulse-response ((user->client :rasta) :post 200 "pulse" {:name          "A Pulse"
-                                                                :cards         [{:id (:id card1)} {:id (:id card2)}]
-                                                                :channels      [{:enabled       true
-                                                                                 :channel_type  "email"
-                                                                                 :schedule_type "daily"
-                                                                                 :schedule_hour 12
-                                                                                 :schedule_day  nil
-                                                                                 :recipients    []}]
-                                                                :skip_if_empty false}))
-      (update :channels remove-extra-channels-fields)))
+  (tu/with-model-cleanup [Pulse]
+    (-> (pulse-response ((user->client :rasta) :post 200 "pulse" {:name          "A Pulse"
+                                                                  :cards         [{:id (:id card1)} {:id (:id card2)}]
+                                                                  :channels      [{:enabled       true
+                                                                                   :channel_type  "email"
+                                                                                   :schedule_type "daily"
+                                                                                   :schedule_hour 12
+                                                                                   :schedule_day  nil
+                                                                                   :recipients    []}]
+                                                                  :skip_if_empty false}))
+        (update :channels remove-extra-channels-fields))))
 
 
 ;; ## PUT /api/pulse

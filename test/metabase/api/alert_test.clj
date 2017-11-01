@@ -142,19 +142,20 @@
                                :schedule_hour 12
                                :recipients    []})]
    :skip_if_empty     true}
-  (-> (pulse-response ((user->client :rasta) :post 200 "alert" {:name              "A Pulse"
-                                                                :card              {:id (:id card1)}
-                                                                :alert_description "foo"
-                                                                :alert_condition   "rows"
-                                                                :alert_first_only  false
-                                                                :alert_above_goal  nil
-                                                                :channels          [{:enabled       true
-                                                                                     :channel_type  "email"
-                                                                                     :schedule_type "daily"
-                                                                                     :schedule_hour 12
-                                                                                     :schedule_day  nil
-                                                                                     :recipients    []}]}))
-      (update :channels remove-extra-channels-fields)))
+  (tu/with-model-cleanup [Pulse]
+    (-> (pulse-response ((user->client :rasta) :post 200 "alert" {:name              "A Pulse"
+                                                                  :card              {:id (:id card1)}
+                                                                  :alert_description "foo"
+                                                                  :alert_condition   "rows"
+                                                                  :alert_first_only  false
+                                                                  :alert_above_goal  nil
+                                                                  :channels          [{:enabled       true
+                                                                                       :channel_type  "email"
+                                                                                       :schedule_type "daily"
+                                                                                       :schedule_hour 12
+                                                                                       :schedule_day  nil
+                                                                                       :recipients    []}]}))
+        (update :channels remove-extra-channels-fields))))
 
 ;; ## PUT /api/alert
 
@@ -245,21 +246,22 @@
                                :details       {:channels "#general"}
                                :recipients    []})]
    :skip_if_empty     true}
-  (-> (pulse-response ((user->client :rasta) :put 200 (format "alert/%d" (:id pulse))
-                              {:name              "Updated Pulse"
-                               :card              {:id (:id card)}
-                               :alert_description "Foo"
-                               :alert_condition   "rows"
-                               :alert_first_only  false
-                               :channels          [{:enabled       true
-                                                    :channel_type  "slack"
-                                                    :schedule_type "hourly"
-                                                    :schedule_hour 12
-                                                    :schedule_day  "mon"
-                                                    :recipients    []
-                                                    :details       {:channels "#general"}}]
-                               :skip_if_empty     false}))
-      (update :channels remove-extra-channels-fields)))
+  (tu/with-model-cleanup [Pulse]
+    (-> (pulse-response ((user->client :rasta) :put 200 (format "alert/%d" (:id pulse))
+                         {:name              "Updated Pulse"
+                          :card              {:id (:id card)}
+                          :alert_description "Foo"
+                          :alert_condition   "rows"
+                          :alert_first_only  false
+                          :channels          [{:enabled       true
+                                               :channel_type  "slack"
+                                               :schedule_type "hourly"
+                                               :schedule_hour 12
+                                               :schedule_day  "mon"
+                                               :recipients    []
+                                               :details       {:channels "#general"}}]
+                          :skip_if_empty     false}))
+        (update :channels remove-extra-channels-fields))))
 
 (defn- basic-alert-query []
   {:name "Foo"
@@ -289,7 +291,7 @@
       :schedule_hour 15,
       :channel_type "email",
       :schedule_frame nil,
-      :recipients [{:id true, :email "rasta@metabase.com", :first_name "Rasta", :last_name "Toucan", :common_name "Rasta Toucan"}],
+       :recipients [{:id true, :email "rasta@metabase.com", :first_name "Rasta", :last_name "Toucan", :common_name "Rasta Toucan"}],
       :schedule_day nil,
       :enabled true
       :updated_at true,
