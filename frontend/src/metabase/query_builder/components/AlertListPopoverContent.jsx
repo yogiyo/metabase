@@ -18,6 +18,9 @@ const ownAlertCustomSpacing = cxs ({
     marginLeft: '9px',
     marginRight: '17px'
 })
+const unsubscribeButtonSpacing = cxs ({
+    transform: `translateY(4px)`
+})
 
 @connect((state) => ({ questionAlerts: getQuestionAlerts(state), user: getUser(state) }), null)
 export class AlertListPopoverContent extends Component {
@@ -140,7 +143,7 @@ export class AlertListItem extends Component {
                         <div>
                             <AlertCreatorTitle alert={alert} user={user} />
                         </div>
-                        <div className="ml-auto text-bold text-small">
+                        <div className={`${unsubscribeButtonSpacing} ml-auto text-bold text-small`}>
                             { (isAdmin || isCurrentUser) && <a className="link" onClick={this.onEdit}>{jt`Edit`}</a> }
                             { !isAdmin && <a className="link ml2" onClick={this.onUnsubscribe}>{jt`Unsubscribe`}</a> }
                         </div>
