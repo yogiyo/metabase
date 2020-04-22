@@ -46,7 +46,7 @@ const QueryDownloadWidget = ({
       <Box p={1}>
         <h4>{t`Download full results`}</h4>
       </Box>
-      { card.collection.name.startsWith("Personal Information") && user.last_name.endsWith("_") ? (
+      { card.collection && card.collection.name.startsWith("Personal Information") && user && user.last_name.endsWith("_") ? (
         <Box px={1}>권힌이 없습니다.</Box>
       ) : result.data != null && result.data.rows_truncated != null ?
       (
@@ -56,7 +56,7 @@ const QueryDownloadWidget = ({
         </Box>
       ) : null }
       <Box>
-        {!(card.collection.name.startsWith("Personal Information") && user.last_name.endsWith("_")) && EXPORT_FORMATS.map(type => (
+        {!(card.collection && card.collection.name.startsWith("Personal Information") && user && user.last_name.endsWith("_")) && EXPORT_FORMATS.map(type => (
           <Box key={type} w={"100%"}>
             {dashcardId && token ? (
               <DashboardEmbedQueryButton

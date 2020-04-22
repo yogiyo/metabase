@@ -100,6 +100,7 @@ export default class View extends React.Component {
       mode,
       fitClassNames,
       height,
+      user,
     } = this.props;
     const {
       aggregationIndex,
@@ -285,7 +286,7 @@ export default class View extends React.Component {
                 <ModeFooter {...this.props} className="flex-no-shrink" />
               )}
 
-              <ViewFooter {...this.props} className="flex-no-shrink" />
+              <ViewFooter {...this.props} user={user} className="flex-no-shrink" />
             </div>
 
             <ViewSidebar right isOpen={!!rightSideBar}>
