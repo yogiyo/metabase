@@ -28,6 +28,7 @@ const QueryDownloadWidget = ({
   dashcardId,
   icon,
   params,
+  user,
 }) => (
   <PopoverWithTrigger
     triggerElement={
@@ -45,14 +46,17 @@ const QueryDownloadWidget = ({
       <Box p={1}>
         <h4>{t`Download full results`}</h4>
       </Box>
-      {result.data != null && result.data.rows_truncated != null && (
+      { card.collection.name.startsWith("Personal Information") && user.last_name.endsWith("_") ? (
+        <Box px={1}>권힌이 없습니다.</Box>
+      ) : result.data != null && result.data.rows_truncated != null ?
+      (
         <Box px={1}>
           <p>{t`Your answer has a large number of rows so it could take a while to download.`}</p>
           <p>{t`The maximum download size is 1 million rows.`}</p>
         </Box>
-      )}
+      ) : null }
       <Box>
-        {EXPORT_FORMATS.map(type => (
+        {!(card.collection.name.startsWith("Personal Information") && user.last_name.endsWith("_")) && EXPORT_FORMATS.map(type => (
           <Box key={type} w={"100%"}>
             {dashcardId && token ? (
               <DashboardEmbedQueryButton

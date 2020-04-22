@@ -58,6 +58,8 @@ const ViewFooter = ({
   isShowingSummarySidebar,
   onEditSummary,
   onCloseSummary,
+
+  user,
 }) => {
   if (!result || isObjectDetail) {
     return null;
@@ -149,6 +151,7 @@ const ViewFooter = ({
               className="mx1 hide sm-show"
               card={question.card()}
               result={result}
+              user={user}
             />
           ),
           QuestionAlertWidget.shouldRender({

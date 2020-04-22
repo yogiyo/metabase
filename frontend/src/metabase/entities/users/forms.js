@@ -27,6 +27,21 @@ const DETAILS_FORM_FIELDS: FormFieldDefinition[] = [
   },
 ];
 
+const UPDATE_FORM_FIELDS: FormFieldDefinition[] = [
+  {
+    name: "first_name",
+    title: t`First name`,
+    placeholder: "Johnny",
+    validate: validate.required().maxLength(100),
+  },
+  {
+    name: "email",
+    title: t`Email`,
+    placeholder: "youlooknicetoday@email.com",
+    validate: validate.required().email(),
+  },
+];
+
 const PASSWORD_FORM_FIELDS: FormFieldDefinition[] = [
   {
     name: "password",
@@ -59,7 +74,7 @@ export default {
     ],
   },
   user: {
-    fields: [...DETAILS_FORM_FIELDS],
+    fields: [...UPDATE_FORM_FIELDS],
   },
   setup: {
     fields: [
